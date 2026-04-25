@@ -1,0 +1,282 @@
+{
+  "generatedAt": "2026-04-25T17:45:04.786Z",
+  "tournament": {
+    "id": "tournament-hoops-league",
+    "name": "东岸篮球冠军联赛",
+    "shortName": "东岸联赛",
+    "sportName": "篮球",
+    "sportIcon": "sports_basketball",
+    "formatName": "双循环",
+    "seasonLabel": "2026 赛季",
+    "organizer": "东岸体育文化",
+    "location": "上海",
+    "level": "商业联赛",
+    "status": "报名中",
+    "startDate": "2026-06-10",
+    "endDate": "2026-08-28",
+    "registrationDeadline": "2026-05-20",
+    "teamCount": 12,
+    "matchCount": 132,
+    "venueCount": 2,
+    "prizePool": 450000,
+    "broadcastChannels": "咪咕体育 / 公众号图文",
+    "notes": "联赛期长，需要完善赛程重排和主客场冲突处理。",
+    "tags": [
+      "赞助招商",
+      "票务",
+      "球员数据"
+    ],
+    "highlights": [
+      "主客场双循环",
+      "技术统计全量采集",
+      "总决赛三场两胜"
+    ],
+    "entryPresentation": {
+      "mode": "team",
+      "singular": "队伍",
+      "plural": "队伍",
+      "pageLabel": "参赛单位",
+      "pageTitle": "队伍与报名",
+      "pageDescription": "当前页面只处理队伍与报名。新增和批量导入使用抽屉，不再把表单摊在正文。",
+      "createLabel": "新增队伍",
+      "createTitle": "新增队伍",
+      "createDescription": "队伍录入使用抽屉，页面主体只保留参赛信息与报名审核。",
+      "bulkTitle": "批量导入队伍",
+      "bulkDescription": "批量导入保留在抽屉里，正文只做结果查看与审核。",
+      "bulkHint": "每行一支队伍，格式：名称, 地区, 教练",
+      "nameLabel": "队伍名称",
+      "shortNameLabel": "简称",
+      "organizationLabel": "俱乐部",
+      "regionLabel": "地区",
+      "coachLabel": "教练",
+      "contactLabel": "队长",
+      "metaLabel": "地区 / 负责人",
+      "coachContactLabel": "教练 / 队长",
+      "memberCountLabel": "参赛人数",
+      "detailTitle": "队伍详情",
+      "countSummaryLabel": "正式队伍",
+      "unit": "支",
+      "defaultParticipantCount": 12
+    },
+    "liveMatchCount": 0,
+    "upcomingMatchCount": 1,
+    "completedMatchCount": 0,
+    "detailUrl": "./tournament.html?id=tournament-hoops-league",
+    "jsonPath": "./data/tournaments/tournament-hoops-league.json"
+  },
+  "metrics": {
+    "liveMatchCount": 0,
+    "upcomingMatchCount": 1,
+    "completedMatchCount": 0,
+    "participantCount": 2,
+    "stageCount": 2
+  },
+  "stages": [
+    {
+      "id": "stage-bb-regular",
+      "name": "常规赛",
+      "stageType": "league",
+      "status": "报名中",
+      "participantScope": "12 队",
+      "rulesSummary": "主客场双循环积分排名",
+      "matchesPlanned": 132,
+      "startDate": "2026-06-10",
+      "endDate": "2026-08-18"
+    },
+    {
+      "id": "stage-bb-finals",
+      "name": "总决赛",
+      "stageType": "knockout",
+      "status": "未开始",
+      "participantScope": "前四",
+      "rulesSummary": "半决赛单场，总决赛三场两胜",
+      "matchesPlanned": 5,
+      "startDate": "2026-08-22",
+      "endDate": "2026-08-28"
+    }
+  ],
+  "entries": [
+    {
+      "id": "team-bb-1",
+      "name": "东岸骑士",
+      "shortName": "DAQ",
+      "organization": "东岸俱乐部",
+      "region": "上海",
+      "coach": "林策",
+      "contactName": "郑野",
+      "participantCount": 18,
+      "status": "待审核",
+      "seedNo": 1,
+      "memberNames": [],
+      "computed": {
+        "matchesPlayed": 0,
+        "wins": 0,
+        "losses": 0,
+        "upcoming": [
+          {
+            "id": "match-bb-1",
+            "roundLabel": "第 1 轮",
+            "scheduledAt": "2026-06-10T19:30:00+08:00",
+            "opponentName": "北湾烈焰"
+          }
+        ],
+        "totalMatches": 1
+      }
+    },
+    {
+      "id": "team-bb-2",
+      "name": "北湾烈焰",
+      "shortName": "BWL",
+      "organization": "北湾体育",
+      "region": "宁波",
+      "coach": "陈律",
+      "contactName": "何启",
+      "participantCount": 18,
+      "status": "已报名",
+      "seedNo": 2,
+      "memberNames": [],
+      "computed": {
+        "matchesPlayed": 0,
+        "wins": 0,
+        "losses": 0,
+        "upcoming": [
+          {
+            "id": "match-bb-1",
+            "roundLabel": "第 1 轮",
+            "scheduledAt": "2026-06-10T19:30:00+08:00",
+            "opponentName": "东岸骑士"
+          }
+        ],
+        "totalMatches": 1
+      }
+    }
+  ],
+  "matches": {
+    "live": [],
+    "upcoming": [
+      {
+        "id": "match-bb-1",
+        "roundLabel": "第 1 轮",
+        "bracketSlot": "R1-G1",
+        "stageName": "常规赛",
+        "scheduledAt": "2026-06-10T19:30:00+08:00",
+        "venueName": "浦东城市馆",
+        "homeTeamName": "东岸骑士",
+        "awayTeamName": "北湾烈焰",
+        "homeScore": 0,
+        "awayScore": 0,
+        "status": "待进行",
+        "streamStatus": "待排期",
+        "officialName": "林朔",
+        "importanceLevel": "高",
+        "notes": "赛季揭幕战",
+        "phaseType": "standard"
+      }
+    ],
+    "recent": [],
+    "all": [
+      {
+        "id": "match-bb-1",
+        "roundLabel": "第 1 轮",
+        "bracketSlot": "R1-G1",
+        "stageName": "常规赛",
+        "scheduledAt": "2026-06-10T19:30:00+08:00",
+        "venueName": "浦东城市馆",
+        "homeTeamName": "东岸骑士",
+        "awayTeamName": "北湾烈焰",
+        "homeScore": 0,
+        "awayScore": 0,
+        "status": "待进行",
+        "streamStatus": "待排期",
+        "officialName": "林朔",
+        "importanceLevel": "高",
+        "notes": "赛季揭幕战",
+        "phaseType": "standard"
+      }
+    ]
+  },
+  "insights": {
+    "tournamentId": "tournament-hoops-league",
+    "standings": [
+      {
+        "teamId": "team-bb-1",
+        "teamName": "东岸骑士",
+        "seedNo": 1,
+        "played": 0,
+        "wins": 0,
+        "draws": 0,
+        "losses": 0,
+        "scoreFor": 0,
+        "scoreAgainst": 0,
+        "scoreDiff": 0,
+        "points": 0,
+        "rank": 1
+      },
+      {
+        "teamId": "team-bb-2",
+        "teamName": "北湾烈焰",
+        "seedNo": 2,
+        "played": 0,
+        "wins": 0,
+        "draws": 0,
+        "losses": 0,
+        "scoreFor": 0,
+        "scoreAgainst": 0,
+        "scoreDiff": 0,
+        "points": 0,
+        "rank": 2
+      }
+    ],
+    "groups": [
+      {
+        "groupName": "A",
+        "rows": [
+          {
+            "teamId": "team-bb-1",
+            "teamName": "东岸骑士",
+            "seedNo": 1,
+            "played": 0,
+            "wins": 0,
+            "draws": 0,
+            "losses": 0,
+            "scoreFor": 0,
+            "scoreAgainst": 0,
+            "scoreDiff": 0,
+            "points": 0,
+            "rank": 1,
+            "qualified": true
+          },
+          {
+            "teamId": "team-bb-2",
+            "teamName": "北湾烈焰",
+            "seedNo": 2,
+            "played": 0,
+            "wins": 0,
+            "draws": 0,
+            "losses": 0,
+            "scoreFor": 0,
+            "scoreAgainst": 0,
+            "scoreDiff": 0,
+            "points": 0,
+            "rank": 2,
+            "qualified": true
+          }
+        ]
+      }
+    ],
+    "advancement": [
+      {
+        "source": "积分榜",
+        "teamId": "team-bb-1",
+        "teamName": "东岸骑士",
+        "rank": 1
+      },
+      {
+        "source": "积分榜",
+        "teamId": "team-bb-2",
+        "teamName": "北湾烈焰",
+        "rank": 2
+      }
+    ]
+  }
+}

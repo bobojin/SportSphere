@@ -1,0 +1,11 @@
+node_modules
+dist
+server/data/*.db
+server/data/*.db-shm
+server/data/*.db-wal
+.sports-server.pid
+.sports-server.log
+.sports-server.err.log
+.codex-start.log
+.tmp-SportSphere/
+.vercel/

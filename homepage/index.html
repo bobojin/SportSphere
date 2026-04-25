@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>赛事列表 | 赛事中心</title>
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body data-page="list">
+    <div class="site-shell">
+      <header class="site-topbar">
+        <div class="topbar-inner">
+          <a class="brandmark" href="./index.html" aria-label="返回赛事列表">
+            <span class="brandmark__kicker">赛事中心</span>
+            <strong>公开赛历</strong>
+          </a>
+          <div class="topbar-meta">
+            <span id="generatedAtText" class="meta-chip">读取中</span>
+          </div>
+        </div>
+      </header>
+
+      <main class="page-shell">
+        <section class="hero-panel">
+          <div class="hero-panel__copy">
+            <p class="eyebrow">赛事目录</p>
+            <h1>面向观众的赛事列表</h1>
+            <p class="hero-summary">
+              这里仅展示赛事公开信息，包括赛制、时间、地点、阶段进度与近期对阵。
+            </p>
+          </div>
+          <div id="summaryGrid" class="summary-grid" aria-label="赛事概览"></div>
+        </section>
+
+        <section class="content-section">
+          <div class="section-heading">
+            <div>
+              <p class="eyebrow">全部赛事</p>
+              <h2>按当前状态排序展示</h2>
+            </div>
+            <span id="tournamentCountText" class="section-note"></span>
+          </div>
+
+          <div id="listState" class="state-panel" role="status">正在加载赛事目录...</div>
+          <div id="tournamentGrid" class="tournament-grid" hidden></div>
+        </section>
+      </main>
+    </div>
+
+    <script type="module" src="./list.js"></script>
+  </body>
+</html>

@@ -1,0 +1,438 @@
+{
+  "generatedAt": "2026-04-25T17:45:04.786Z",
+  "tournament": {
+    "id": "tournament-esports-masters",
+    "name": "先锋电竞大师赛",
+    "shortName": "先锋大师赛",
+    "sportName": "电子竞技",
+    "sportIcon": "stadia_controller",
+    "formatName": "双败淘汰",
+    "seasonLabel": "2026 第 2 赛段",
+    "organizer": "火线数字竞技",
+    "location": "上海",
+    "level": "品牌巡回赛",
+    "status": "进行中",
+    "startDate": "2026-04-25",
+    "endDate": "2026-05-03",
+    "registrationDeadline": "2026-04-15",
+    "teamCount": 8,
+    "matchCount": 14,
+    "venueCount": 1,
+    "prizePool": 800000,
+    "broadcastChannels": "斗鱼 / 虎牙 / 抖音",
+    "notes": "需要重点跟踪导播、串流状态和总决赛重置逻辑。",
+    "tags": [
+      "双败",
+      "直播制作",
+      "赞助权益"
+    ],
+    "highlights": [
+      "胜败者组并行",
+      "直播流管理",
+      "选手休息室排班"
+    ],
+    "entryPresentation": {
+      "mode": "team",
+      "singular": "队伍",
+      "plural": "队伍",
+      "pageLabel": "参赛单位",
+      "pageTitle": "队伍与报名",
+      "pageDescription": "当前页面只处理队伍与报名。新增和批量导入使用抽屉，不再把表单摊在正文。",
+      "createLabel": "新增队伍",
+      "createTitle": "新增队伍",
+      "createDescription": "队伍录入使用抽屉，页面主体只保留参赛信息与报名审核。",
+      "bulkTitle": "批量导入队伍",
+      "bulkDescription": "批量导入保留在抽屉里，正文只做结果查看与审核。",
+      "bulkHint": "每行一支队伍，格式：名称, 地区, 教练",
+      "nameLabel": "队伍名称",
+      "shortNameLabel": "简称",
+      "organizationLabel": "俱乐部",
+      "regionLabel": "地区",
+      "coachLabel": "教练",
+      "contactLabel": "队长",
+      "metaLabel": "地区 / 负责人",
+      "coachContactLabel": "教练 / 队长",
+      "memberCountLabel": "参赛人数",
+      "detailTitle": "队伍详情",
+      "countSummaryLabel": "正式队伍",
+      "unit": "支",
+      "defaultParticipantCount": 12
+    },
+    "liveMatchCount": 0,
+    "upcomingMatchCount": 0,
+    "completedMatchCount": 3,
+    "detailUrl": "./tournament.html?id=tournament-esports-masters",
+    "jsonPath": "./data/tournaments/tournament-esports-masters.json"
+  },
+  "metrics": {
+    "liveMatchCount": 0,
+    "upcomingMatchCount": 0,
+    "completedMatchCount": 3,
+    "participantCount": 4,
+    "stageCount": 2
+  },
+  "stages": [
+    {
+      "id": "stage-es-upper",
+      "name": "胜者组",
+      "stageType": "upper-bracket",
+      "status": "进行中",
+      "participantScope": "8 队",
+      "rulesSummary": "双败淘汰胜者线",
+      "matchesPlanned": 7,
+      "startDate": "2026-04-25",
+      "endDate": "2026-05-02"
+    },
+    {
+      "id": "stage-es-lower",
+      "name": "败者组",
+      "stageType": "lower-bracket",
+      "status": "进行中",
+      "participantScope": "败者队伍",
+      "rulesSummary": "双败淘汰败者线",
+      "matchesPlanned": 6,
+      "startDate": "2026-04-26",
+      "endDate": "2026-05-03"
+    }
+  ],
+  "entries": [
+    {
+      "id": "team-es-1",
+      "name": "Nova Pulse",
+      "shortName": "NVP",
+      "organization": "Nova Pulse",
+      "region": "上海",
+      "coach": "Aren",
+      "contactName": "Mio",
+      "participantCount": 6,
+      "status": "已确认",
+      "seedNo": 1,
+      "memberNames": [],
+      "computed": {
+        "matchesPlayed": 2,
+        "wins": 2,
+        "losses": 0,
+        "upcoming": [],
+        "totalMatches": 2
+      }
+    },
+    {
+      "id": "team-es-2",
+      "name": "Crimson Unit",
+      "shortName": "CRU",
+      "organization": "Crimson Unit",
+      "region": "广州",
+      "coach": "Frost",
+      "contactName": "K",
+      "participantCount": 6,
+      "status": "已确认",
+      "seedNo": 2,
+      "memberNames": [],
+      "computed": {
+        "matchesPlayed": 1,
+        "wins": 0,
+        "losses": 1,
+        "upcoming": [],
+        "totalMatches": 1
+      }
+    },
+    {
+      "id": "team-es-3",
+      "name": "Blue Circuit",
+      "shortName": "BLC",
+      "organization": "Blue Circuit",
+      "region": "成都",
+      "coach": "Sage",
+      "contactName": "Volt",
+      "participantCount": 6,
+      "status": "已确认",
+      "seedNo": 3,
+      "memberNames": [],
+      "computed": {
+        "matchesPlayed": 1,
+        "wins": 0,
+        "losses": 0,
+        "upcoming": [],
+        "totalMatches": 1
+      }
+    },
+    {
+      "id": "team-es-4",
+      "name": "Iron Harbor",
+      "shortName": "IRH",
+      "organization": "Iron Harbor",
+      "region": "北京",
+      "coach": "Knox",
+      "contactName": "Ray",
+      "participantCount": 6,
+      "status": "已确认",
+      "seedNo": 4,
+      "memberNames": [],
+      "computed": {
+        "matchesPlayed": 2,
+        "wins": 0,
+        "losses": 1,
+        "upcoming": [],
+        "totalMatches": 2
+      }
+    }
+  ],
+  "matches": {
+    "live": [],
+    "upcoming": [],
+    "recent": [
+      {
+        "id": "match-es-1",
+        "roundLabel": "胜者组首轮",
+        "bracketSlot": "U1",
+        "stageName": "胜者组",
+        "scheduledAt": "2026-04-25T14:00:00+08:00",
+        "venueName": "静安电竞馆",
+        "homeTeamName": "Nova Pulse",
+        "awayTeamName": "Iron Harbor",
+        "homeScore": 2,
+        "awayScore": 0,
+        "status": "已结束",
+        "streamStatus": "已完成",
+        "officialName": "许铮",
+        "importanceLevel": "高",
+        "notes": "主舞台 BO3",
+        "phaseType": "standard"
+      },
+      {
+        "id": "match-es-2",
+        "roundLabel": "胜者组半决赛",
+        "bracketSlot": "U2",
+        "stageName": "胜者组",
+        "scheduledAt": "2026-04-26T16:00:00+08:00",
+        "venueName": "静安电竞馆",
+        "homeTeamName": "Nova Pulse",
+        "awayTeamName": "Crimson Unit",
+        "homeScore": 2,
+        "awayScore": 1,
+        "status": "已结束",
+        "streamStatus": "已完成",
+        "officialName": "陈澈",
+        "importanceLevel": "极高",
+        "notes": "峰值在线 12 万",
+        "phaseType": "standard"
+      },
+      {
+        "id": "match-es-3",
+        "roundLabel": "败者组首轮",
+        "bracketSlot": "L1",
+        "stageName": "败者组",
+        "scheduledAt": "2026-04-26T19:30:00+08:00",
+        "venueName": "静安电竞馆",
+        "homeTeamName": "Blue Circuit",
+        "awayTeamName": "Iron Harbor",
+        "homeScore": 0,
+        "awayScore": 0,
+        "status": "已结束",
+        "streamStatus": "已完成",
+        "officialName": "许铮",
+        "importanceLevel": "中",
+        "notes": "败者生死战",
+        "phaseType": "standard"
+      }
+    ],
+    "all": [
+      {
+        "id": "match-es-1",
+        "roundLabel": "胜者组首轮",
+        "bracketSlot": "U1",
+        "stageName": "胜者组",
+        "scheduledAt": "2026-04-25T14:00:00+08:00",
+        "venueName": "静安电竞馆",
+        "homeTeamName": "Nova Pulse",
+        "awayTeamName": "Iron Harbor",
+        "homeScore": 2,
+        "awayScore": 0,
+        "status": "已结束",
+        "streamStatus": "已完成",
+        "officialName": "许铮",
+        "importanceLevel": "高",
+        "notes": "主舞台 BO3",
+        "phaseType": "standard"
+      },
+      {
+        "id": "match-es-2",
+        "roundLabel": "胜者组半决赛",
+        "bracketSlot": "U2",
+        "stageName": "胜者组",
+        "scheduledAt": "2026-04-26T16:00:00+08:00",
+        "venueName": "静安电竞馆",
+        "homeTeamName": "Nova Pulse",
+        "awayTeamName": "Crimson Unit",
+        "homeScore": 2,
+        "awayScore": 1,
+        "status": "已结束",
+        "streamStatus": "已完成",
+        "officialName": "陈澈",
+        "importanceLevel": "极高",
+        "notes": "峰值在线 12 万",
+        "phaseType": "standard"
+      },
+      {
+        "id": "match-es-3",
+        "roundLabel": "败者组首轮",
+        "bracketSlot": "L1",
+        "stageName": "败者组",
+        "scheduledAt": "2026-04-26T19:30:00+08:00",
+        "venueName": "静安电竞馆",
+        "homeTeamName": "Blue Circuit",
+        "awayTeamName": "Iron Harbor",
+        "homeScore": 0,
+        "awayScore": 0,
+        "status": "已结束",
+        "streamStatus": "已完成",
+        "officialName": "许铮",
+        "importanceLevel": "中",
+        "notes": "败者生死战",
+        "phaseType": "standard"
+      }
+    ]
+  },
+  "insights": {
+    "tournamentId": "tournament-esports-masters",
+    "standings": [
+      {
+        "teamId": "team-es-1",
+        "teamName": "Nova Pulse",
+        "seedNo": 1,
+        "played": 0,
+        "wins": 0,
+        "draws": 0,
+        "losses": 0,
+        "scoreFor": 0,
+        "scoreAgainst": 0,
+        "scoreDiff": 0,
+        "points": 0,
+        "rank": 1
+      },
+      {
+        "teamId": "team-es-2",
+        "teamName": "Crimson Unit",
+        "seedNo": 2,
+        "played": 0,
+        "wins": 0,
+        "draws": 0,
+        "losses": 0,
+        "scoreFor": 0,
+        "scoreAgainst": 0,
+        "scoreDiff": 0,
+        "points": 0,
+        "rank": 2
+      },
+      {
+        "teamId": "team-es-3",
+        "teamName": "Blue Circuit",
+        "seedNo": 3,
+        "played": 0,
+        "wins": 0,
+        "draws": 0,
+        "losses": 0,
+        "scoreFor": 0,
+        "scoreAgainst": 0,
+        "scoreDiff": 0,
+        "points": 0,
+        "rank": 3
+      },
+      {
+        "teamId": "team-es-4",
+        "teamName": "Iron Harbor",
+        "seedNo": 4,
+        "played": 0,
+        "wins": 0,
+        "draws": 0,
+        "losses": 0,
+        "scoreFor": 0,
+        "scoreAgainst": 0,
+        "scoreDiff": 0,
+        "points": 0,
+        "rank": 4
+      }
+    ],
+    "groups": [
+      {
+        "groupName": "A",
+        "rows": [
+          {
+            "teamId": "team-es-1",
+            "teamName": "Nova Pulse",
+            "seedNo": 1,
+            "played": 0,
+            "wins": 0,
+            "draws": 0,
+            "losses": 0,
+            "scoreFor": 0,
+            "scoreAgainst": 0,
+            "scoreDiff": 0,
+            "points": 0,
+            "rank": 1,
+            "qualified": true
+          },
+          {
+            "teamId": "team-es-2",
+            "teamName": "Crimson Unit",
+            "seedNo": 2,
+            "played": 0,
+            "wins": 0,
+            "draws": 0,
+            "losses": 0,
+            "scoreFor": 0,
+            "scoreAgainst": 0,
+            "scoreDiff": 0,
+            "points": 0,
+            "rank": 2,
+            "qualified": true
+          },
+          {
+            "teamId": "team-es-3",
+            "teamName": "Blue Circuit",
+            "seedNo": 3,
+            "played": 0,
+            "wins": 0,
+            "draws": 0,
+            "losses": 0,
+            "scoreFor": 0,
+            "scoreAgainst": 0,
+            "scoreDiff": 0,
+            "points": 0,
+            "rank": 3,
+            "qualified": false
+          },
+          {
+            "teamId": "team-es-4",
+            "teamName": "Iron Harbor",
+            "seedNo": 4,
+            "played": 0,
+            "wins": 0,
+            "draws": 0,
+            "losses": 0,
+            "scoreFor": 0,
+            "scoreAgainst": 0,
+            "scoreDiff": 0,
+            "points": 0,
+            "rank": 4,
+            "qualified": false
+          }
+        ]
+      }
+    ],
+    "advancement": [
+      {
+        "source": "积分榜",
+        "teamId": "team-es-1",
+        "teamName": "Nova Pulse",
+        "rank": 1
+      },
+      {
+        "source": "积分榜",
+        "teamId": "team-es-2",
+        "teamName": "Crimson Unit",
+        "rank": 2
+      }
+    ]
+  }
+}
