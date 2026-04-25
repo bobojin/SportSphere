@@ -1,0 +1,289 @@
+{
+  "generatedAt": "2026-04-25T20:54:31.082Z",
+  "tournament": {
+    "id": "tournament-swim-open",
+    "name": "城市公开游泳锦标赛",
+    "shortName": "游泳公开赛",
+    "sportName": "游泳",
+    "sportIcon": "pool",
+    "formatName": "资格赛 + 决赛",
+    "seasonLabel": "2026 夏季",
+    "organizer": "城市泳协",
+    "location": "上海",
+    "level": "公开赛",
+    "status": "筹备中",
+    "startDate": "2026-07-12",
+    "endDate": "2026-07-14",
+    "registrationDeadline": "2026-06-28",
+    "teamCount": 24,
+    "matchCount": 36,
+    "venueCount": 1,
+    "prizePool": 200000,
+    "broadcastChannels": "官方小程序",
+    "notes": "重点是检录、分组编排和成绩发布。",
+    "tags": [
+      "计时",
+      "检录",
+      "分组"
+    ],
+    "highlights": [
+      "预赛计时晋级",
+      "A/B 决赛",
+      "成绩公告联动"
+    ],
+    "entryPresentation": {
+      "mode": "participant",
+      "singular": "选手",
+      "plural": "选手",
+      "pageLabel": "参赛主体",
+      "pageTitle": "选手与报名",
+      "pageDescription": "当前页面只处理选手与报名。个人项目不再伪装成队伍模型。",
+      "createLabel": "新增选手",
+      "createTitle": "新增选手",
+      "createDescription": "选手录入使用抽屉，页面主体只保留选手名册、成绩与报名审核。",
+      "bulkTitle": "批量导入选手",
+      "bulkDescription": "批量导入选手名单，页面主体只保留结果与审核。",
+      "bulkHint": "每行一名选手，格式：姓名, 地区, 教练",
+      "nameLabel": "选手姓名",
+      "shortNameLabel": "显示简称",
+      "organizationLabel": "所属机构",
+      "regionLabel": "地区",
+      "coachLabel": "教练",
+      "contactLabel": "联系人",
+      "metaLabel": "地区 / 机构",
+      "coachContactLabel": "教练 / 联系人",
+      "memberCountLabel": "随队人数",
+      "detailTitle": "选手详情",
+      "countSummaryLabel": "正式选手",
+      "unit": "人",
+      "defaultParticipantCount": 1
+    },
+    "series": {
+      "self": null,
+      "parent": null,
+      "children": []
+    },
+    "liveMatchCount": 0,
+    "upcomingMatchCount": 0,
+    "completedMatchCount": 0,
+    "detailUrl": "./tournament.html?id=tournament-swim-open",
+    "jsonPath": "./data/tournaments/tournament-swim-open.json"
+  },
+  "metrics": {
+    "liveMatchCount": 0,
+    "upcomingMatchCount": 0,
+    "completedMatchCount": 0,
+    "participantCount": 3,
+    "stageCount": 2
+  },
+  "series": {
+    "self": null,
+    "parent": null,
+    "children": []
+  },
+  "stages": [
+    {
+      "id": "stage-sw-heats",
+      "name": "预赛",
+      "stageType": "qualifier",
+      "status": "筹备中",
+      "participantScope": "24 队/个人",
+      "rulesSummary": "分组计时取前八",
+      "matchesPlanned": 24,
+      "startDate": "2026-07-12",
+      "endDate": "2026-07-13"
+    },
+    {
+      "id": "stage-sw-finals",
+      "name": "决赛",
+      "stageType": "final",
+      "status": "筹备中",
+      "participantScope": "A/B 决赛",
+      "rulesSummary": "按成绩编道出发",
+      "matchesPlanned": 12,
+      "startDate": "2026-07-14",
+      "endDate": "2026-07-14"
+    }
+  ],
+  "entries": [
+    {
+      "id": "entry-sw-1",
+      "name": "韩未",
+      "shortName": "韩未",
+      "organization": "浦东泳协",
+      "region": "上海",
+      "coach": "周朔",
+      "contactName": "韩未",
+      "participantCount": 1,
+      "status": "待检录",
+      "seedNo": 1,
+      "memberNames": [],
+      "computed": {
+        "matchesPlayed": 0,
+        "wins": 0,
+        "losses": 0,
+        "upcoming": [],
+        "totalMatches": 0
+      }
+    },
+    {
+      "id": "entry-sw-2",
+      "name": "罗溪",
+      "shortName": "罗溪",
+      "organization": "闵行泳协",
+      "region": "上海",
+      "coach": "于森",
+      "contactName": "罗溪",
+      "participantCount": 1,
+      "status": "待检录",
+      "seedNo": 2,
+      "memberNames": [],
+      "computed": {
+        "matchesPlayed": 0,
+        "wins": 0,
+        "losses": 0,
+        "upcoming": [],
+        "totalMatches": 0
+      }
+    },
+    {
+      "id": "entry-sw-3",
+      "name": "顾年",
+      "shortName": "顾年",
+      "organization": "徐汇泳协",
+      "region": "上海",
+      "coach": "赵旻",
+      "contactName": "顾年",
+      "participantCount": 1,
+      "status": "待检录",
+      "seedNo": 3,
+      "memberNames": [],
+      "computed": {
+        "matchesPlayed": 0,
+        "wins": 0,
+        "losses": 0,
+        "upcoming": [],
+        "totalMatches": 0
+      }
+    }
+  ],
+  "matches": {
+    "live": [],
+    "upcoming": [],
+    "recent": [],
+    "all": []
+  },
+  "insights": {
+    "tournamentId": "tournament-swim-open",
+    "standings": [
+      {
+        "teamId": "entry-sw-1",
+        "teamName": "韩未",
+        "seedNo": 1,
+        "played": 0,
+        "wins": 0,
+        "draws": 0,
+        "losses": 0,
+        "scoreFor": 0,
+        "scoreAgainst": 0,
+        "scoreDiff": 0,
+        "points": 0,
+        "rank": 1
+      },
+      {
+        "teamId": "entry-sw-2",
+        "teamName": "罗溪",
+        "seedNo": 2,
+        "played": 0,
+        "wins": 0,
+        "draws": 0,
+        "losses": 0,
+        "scoreFor": 0,
+        "scoreAgainst": 0,
+        "scoreDiff": 0,
+        "points": 0,
+        "rank": 2
+      },
+      {
+        "teamId": "entry-sw-3",
+        "teamName": "顾年",
+        "seedNo": 3,
+        "played": 0,
+        "wins": 0,
+        "draws": 0,
+        "losses": 0,
+        "scoreFor": 0,
+        "scoreAgainst": 0,
+        "scoreDiff": 0,
+        "points": 0,
+        "rank": 3
+      }
+    ],
+    "groups": [
+      {
+        "groupName": "A",
+        "rows": [
+          {
+            "teamId": "entry-sw-1",
+            "teamName": "韩未",
+            "seedNo": 1,
+            "played": 0,
+            "wins": 0,
+            "draws": 0,
+            "losses": 0,
+            "scoreFor": 0,
+            "scoreAgainst": 0,
+            "scoreDiff": 0,
+            "points": 0,
+            "rank": 1,
+            "qualified": true
+          },
+          {
+            "teamId": "entry-sw-2",
+            "teamName": "罗溪",
+            "seedNo": 2,
+            "played": 0,
+            "wins": 0,
+            "draws": 0,
+            "losses": 0,
+            "scoreFor": 0,
+            "scoreAgainst": 0,
+            "scoreDiff": 0,
+            "points": 0,
+            "rank": 2,
+            "qualified": true
+          },
+          {
+            "teamId": "entry-sw-3",
+            "teamName": "顾年",
+            "seedNo": 3,
+            "played": 0,
+            "wins": 0,
+            "draws": 0,
+            "losses": 0,
+            "scoreFor": 0,
+            "scoreAgainst": 0,
+            "scoreDiff": 0,
+            "points": 0,
+            "rank": 3,
+            "qualified": false
+          }
+        ]
+      }
+    ],
+    "advancement": [
+      {
+        "source": "积分榜",
+        "teamId": "entry-sw-1",
+        "teamName": "韩未",
+        "rank": 1
+      },
+      {
+        "source": "积分榜",
+        "teamId": "entry-sw-2",
+        "teamName": "罗溪",
+        "rank": 2
+      }
+    ]
+  }
+}

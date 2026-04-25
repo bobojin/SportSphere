@@ -218,10 +218,148 @@ const ENTRY_MODE_CONFIG = {
   }
 };
 
+const ENTRY_MODE_LABELS = {
+  team: "团队",
+  participant: "个人",
+  entry: "参赛单元"
+};
+
+const TOURNAMENT_SERIES_LEVELS = [
+  { value: "city", label: "市级" },
+  { value: "province", label: "省级" },
+  { value: "national", label: "全国" }
+];
+
+const TOURNAMENT_SERIES_LEVEL_LOOKUP = Object.fromEntries(
+  TOURNAMENT_SERIES_LEVELS.map((item) => [item.value, item.label])
+);
+const TOURNAMENT_SERIES_LEVEL_RANK = Object.fromEntries(
+  TOURNAMENT_SERIES_LEVELS.map((item, index) => [item.value, index + 1])
+);
+
 function getEntryMode(participantsType) {
   if (participantsType === "individual") return "participant";
   if (participantsType === "single_double") return "entry";
   return "team";
+}
+
+function getTournamentCreationConfig(sport) {
+  if (!sport) {
+    return {
+      allowedEntryModes: [],
+      allowedFormatsByEntryMode: {}
+    };
+  }
+
+  const teamFormats = [
+    "single-elimination",
+    "double-elimination",
+    "round-robin",
+    "double-round-robin",
+    "group-knockout"
+  ];
+  const entryFormats = ["single-elimination", "double-elimination", "round-robin", "group-knockout"];
+  const timedFormats = ["time-qualifier-final"];
+
+  if (sport.category === "racket") {
+    return {
+      allowedEntryModes: ["entry", "team"],
+      allowedFormatsByEntryMode: {
+        entry: entryFormats,
+        team: teamFormats
+      }
+    };
+  }
+
+  if (["aquatic", "track-field"].includes(sport.category)) {
+    return {
+      allowedEntryModes: ["participant", "entry"],
+      allowedFormatsByEntryMode: {
+        participant: timedFormats,
+        entry: timedFormats
+      }
+    };
+  }
+
+  return {
+    allowedEntryModes: ["team"],
+    allowedFormatsByEntryMode: {
+      team: teamFormats
+    }
+  };
+}
+
+function parseInteger(value, fallback = 0) {
+  const parsed = Number.parseInt(value, 10);
+  return Number.isFinite(parsed) ? parsed : fallback;
+}
+
+function normalizeTournamentSeriesPayload(payload = {}) {
+  const seriesName = String(payload.seriesName || "").trim();
+  const seriesLevel = String(payload.seriesLevel || "").trim();
+  const parentTournamentId = String(payload.parentTournamentId || "").trim();
+  const qualifiesToCount = parseInteger(payload.qualifiesToCount, 0);
+  const qualifyRule = String(payload.qualifyRule || "").trim();
+  const stageLabel = String(payload.stageLabel || "").trim();
+
+  if (!seriesName && !parentTournamentId) {
+    return {
+      seriesName: "",
+      seriesLevel: "",
+      parentTournamentId: "",
+      qualifiesToCount: 0,
+      qualifyRule: "",
+      stageLabel: ""
+    };
+  }
+
+  if (!TOURNAMENT_SERIES_LEVEL_LOOKUP[seriesLevel]) {
+    throw new Error("请先选择赛事体系级别");
+  }
+
+  return {
+    seriesName,
+    seriesLevel,
+    parentTournamentId,
+    qualifiesToCount: Math.max(0, qualifiesToCount),
+    qualifyRule,
+    stageLabel
+  };
+}
+
+function resolveTournamentCreationRules(sportId, formatId, entryMode) {
+  const sport = get("SELECT id, name, category, participants_type FROM sports WHERE id = ?", [sportId]);
+
+  if (!sport) {
+    throw new Error("未找到对应的运动项目");
+  }
+
+  const format = get("SELECT id, name, category FROM competition_formats WHERE id = ?", [formatId]);
+
+  if (!format) {
+    throw new Error("未找到对应的赛制");
+  }
+
+  const creationConfig = getTournamentCreationConfig(sport);
+  const allowedEntryModes = creationConfig.allowedEntryModes || [];
+
+  if (!allowedEntryModes.includes(entryMode)) {
+    throw new Error(`${sport.name} 当前不支持该参赛模式`);
+  }
+
+  const allowedFormatIds = creationConfig.allowedFormatsByEntryMode?.[entryMode] || [];
+
+  if (!allowedFormatIds.includes(format.id)) {
+    throw new Error(`${sport.name} 在${getEntryConfig(entryMode).singular}模式下不支持 ${format.name} 赛制`);
+  }
+
+  return {
+    sport,
+    format,
+    entryMode,
+    allowedEntryModes,
+    allowedFormatIds
+  };
 }
 
 function getEntryConfig(modeOrParticipantsType) {
@@ -701,6 +839,194 @@ function listTournamentMatches(tournamentId) {
   }));
 }
 
+function listTournamentSeriesLinks() {
+  if (!hasTable("tournament_series_links")) return [];
+
+  return all(`
+    SELECT
+      tsl.*,
+      child.name AS child_tournament_name,
+      child.short_name AS child_short_name,
+      child.status AS child_status,
+      child.start_date AS child_start_date,
+      child.end_date AS child_end_date,
+      child.location AS child_location,
+      child.level AS child_level_label,
+      child.sport_id AS child_sport_id,
+      parent.name AS parent_tournament_name,
+      parent.short_name AS parent_short_name,
+      parent.status AS parent_status,
+      parent.start_date AS parent_start_date,
+      parent.end_date AS parent_end_date,
+      parent.location AS parent_location,
+      parent.level AS parent_level_label,
+      parent.sport_id AS parent_sport_id
+    FROM tournament_series_links tsl
+    JOIN tournaments child ON child.id = tsl.child_tournament_id
+    LEFT JOIN tournaments parent ON parent.id = tsl.parent_tournament_id
+    ORDER BY
+      tsl.series_name ASC,
+      CASE tsl.series_level
+        WHEN 'city' THEN 1
+        WHEN 'province' THEN 2
+        WHEN 'national' THEN 3
+        ELSE 4
+      END ASC,
+      child.start_date ASC
+  `);
+}
+
+function buildTournamentSeriesMap() {
+  const links = listTournamentSeriesLinks();
+  const byTournamentId = new Map();
+
+  for (const link of links) {
+    const childId = link.child_tournament_id;
+    const parentId = link.parent_tournament_id;
+
+    if (!byTournamentId.has(childId)) {
+      byTournamentId.set(childId, {
+        self: null,
+        parent: null,
+        children: []
+      });
+    }
+
+    const current = byTournamentId.get(childId);
+    current.self = {
+      seriesName: link.series_name,
+      seriesLevel: link.series_level,
+      seriesLevelLabel: TOURNAMENT_SERIES_LEVEL_LOOKUP[link.series_level] || link.series_level,
+      stageLabel: link.stage_label,
+      qualifiesToCount: link.qualifies_to_count,
+      qualifyRule: link.qualify_rule
+    };
+
+    if (parentId) {
+      current.parent = {
+        id: parentId,
+        name: link.parent_tournament_name,
+        shortName: link.parent_short_name,
+        status: link.parent_status,
+        startDate: link.parent_start_date,
+        endDate: link.parent_end_date,
+        location: link.parent_location,
+        level: link.parent_level_label,
+        sportId: link.parent_sport_id,
+        stageLabel: ""
+      };
+
+      if (!byTournamentId.has(parentId)) {
+        byTournamentId.set(parentId, {
+          self: null,
+          parent: null,
+          children: []
+        });
+      }
+
+      byTournamentId.get(parentId).children.push({
+        id: childId,
+        name: link.child_tournament_name,
+        shortName: link.child_short_name,
+        status: link.child_status,
+        startDate: link.child_start_date,
+        endDate: link.child_end_date,
+        location: link.child_location,
+        level: link.child_level_label,
+        sportId: link.child_sport_id,
+        stageLabel: link.stage_label,
+        qualifiesToCount: link.qualifies_to_count,
+        qualifyRule: link.qualify_rule
+      });
+    }
+  }
+
+  for (const current of byTournamentId.values()) {
+    if (!current.parent?.id) continue;
+
+    const parentNode = byTournamentId.get(current.parent.id);
+    current.parent.stageLabel = parentNode?.self?.stageLabel || "";
+  }
+
+  return byTournamentId;
+}
+
+function upsertTournamentSeriesLink(childTournamentId, seriesPayload) {
+  if (!childTournamentId) return;
+
+  const normalized = normalizeTournamentSeriesPayload(seriesPayload);
+
+  if (!normalized.seriesName) {
+    run("DELETE FROM tournament_series_links WHERE child_tournament_id = ?", [childTournamentId]);
+    return;
+  }
+
+  const childTournament = get("SELECT id, name, sport_id FROM tournaments WHERE id = ?", [childTournamentId]);
+  if (!childTournament) {
+    throw new Error("目标赛事不存在");
+  }
+
+  if (normalized.parentTournamentId && normalized.parentTournamentId === childTournamentId) {
+    throw new Error("上级赛事不能选择当前赛事自身");
+  }
+
+  if (normalized.parentTournamentId) {
+    const parentTournament = get("SELECT id, name, sport_id FROM tournaments WHERE id = ?", [normalized.parentTournamentId]);
+    if (!parentTournament) {
+      throw new Error("上级赛事不存在");
+    }
+    if (parentTournament.sport_id !== childTournament.sport_id) {
+      throw new Error("上级赛事必须与当前赛事属于同一运动项目");
+    }
+    const parentSeries = get(
+      `
+        SELECT series_name, series_level
+        FROM tournament_series_links
+        WHERE child_tournament_id = ?
+      `,
+      [normalized.parentTournamentId]
+    );
+    if (parentSeries?.series_name && parentSeries.series_name !== normalized.seriesName) {
+      normalized.seriesName = parentSeries.series_name;
+    }
+    const parentSeriesLevel = parentSeries?.series_level;
+    if (
+      TOURNAMENT_SERIES_LEVEL_RANK[normalized.seriesLevel] &&
+      parentSeriesLevel &&
+      TOURNAMENT_SERIES_LEVEL_RANK[parentSeriesLevel] <= TOURNAMENT_SERIES_LEVEL_RANK[normalized.seriesLevel]
+    ) {
+      throw new Error("上级赛事的体系级别必须高于当前赛事");
+    }
+  }
+
+  run(
+    `
+      INSERT INTO tournament_series_links (
+        id, child_tournament_id, parent_tournament_id, series_name, series_level, stage_label, qualifies_to_count, qualify_rule
+      ) VALUES (
+        @id, @childTournamentId, @parentTournamentId, @seriesName, @seriesLevel, @stageLabel, @qualifiesToCount, @qualifyRule
+      )
+      ON CONFLICT(child_tournament_id) DO UPDATE SET
+        parent_tournament_id = excluded.parent_tournament_id,
+        series_name = excluded.series_name,
+        series_level = excluded.series_level,
+        stage_label = excluded.stage_label,
+        qualifies_to_count = excluded.qualifies_to_count,
+        qualify_rule = excluded.qualify_rule
+    `,
+    {
+      id: createId("series"),
+      childTournamentId,
+      parentTournamentId: normalized.parentTournamentId || null,
+      seriesName: normalized.seriesName,
+      seriesLevel: normalized.seriesLevel,
+      stageLabel: normalized.stageLabel,
+      qualifiesToCount: normalized.qualifiesToCount,
+      qualifyRule: normalized.qualifyRule
+    }
+  );
+}
+
 function getTournamentById(tournamentId) {
   return get(
     `
@@ -733,6 +1059,18 @@ function deleteTournamentEntries(tournamentId) {
 
 function deleteTournamentLegacyTeams(tournamentId) {
   run("DELETE FROM teams WHERE tournament_id = ?", [tournamentId]);
+}
+
+function deleteTournamentSeriesLinks(tournamentId) {
+  run("DELETE FROM tournament_series_links WHERE child_tournament_id = ?", [tournamentId]);
+  run(
+    `
+      UPDATE tournament_series_links
+      SET parent_tournament_id = NULL
+      WHERE parent_tournament_id = ?
+    `,
+    [tournamentId]
+  );
 }
 
 function deleteTournamentRegistrations(tournamentId) {
@@ -1710,6 +2048,20 @@ function initSchema() {
       FOREIGN KEY (format_id) REFERENCES competition_formats(id)
     );
 
+    CREATE TABLE IF NOT EXISTS tournament_series_links (
+      id TEXT PRIMARY KEY,
+      child_tournament_id TEXT NOT NULL UNIQUE,
+      parent_tournament_id TEXT,
+      series_name TEXT NOT NULL,
+      series_level TEXT NOT NULL,
+      stage_label TEXT NOT NULL DEFAULT '',
+      qualifies_to_count INTEGER NOT NULL DEFAULT 0,
+      qualify_rule TEXT NOT NULL DEFAULT '',
+      created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+      FOREIGN KEY (child_tournament_id) REFERENCES tournaments(id),
+      FOREIGN KEY (parent_tournament_id) REFERENCES tournaments(id)
+    );
+
     CREATE TABLE IF NOT EXISTS tournament_stages (
       id TEXT PRIMARY KEY,
       tournament_id TEXT NOT NULL,
@@ -1924,6 +2276,504 @@ function migrateTeamsToEntries() {
       team.id
     );
   }
+}
+
+function upsertLegacyTeamFromEntry(entry) {
+  run(
+    `
+      INSERT INTO teams (
+        id, tournament_id, name, short_name, seed_no, club, region, coach, captain,
+        participant_count, status, stats_json, is_placeholder
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      ON CONFLICT(id) DO UPDATE SET
+        tournament_id = excluded.tournament_id,
+        name = excluded.name,
+        short_name = excluded.short_name,
+        seed_no = excluded.seed_no,
+        club = excluded.club,
+        region = excluded.region,
+        coach = excluded.coach,
+        captain = excluded.captain,
+        participant_count = excluded.participant_count,
+        status = excluded.status,
+        stats_json = excluded.stats_json,
+        is_placeholder = excluded.is_placeholder
+    `,
+    [
+      entry.id,
+      entry.tournament_id,
+      entry.name,
+      entry.short_name,
+      entry.seed_no,
+      entry.organization,
+      entry.region,
+      entry.coach,
+      entry.contact_name,
+      entry.participant_count,
+      entry.status,
+      entry.stats_json,
+      entry.is_placeholder || 0
+    ]
+  );
+}
+
+function syncLegacyTeamsFromEntries(tournamentId = null, options = {}) {
+  if (!hasTable("teams") || !hasTable("entries")) return;
+
+  const { removeMissing = false } = options;
+  const params = tournamentId ? [tournamentId] : [];
+  const whereClause = tournamentId ? "WHERE tournament_id = ?" : "";
+  const entries = all(`SELECT * FROM entries ${whereClause} ORDER BY tournament_id ASC, seed_no ASC`, params);
+
+  for (const entry of entries) {
+    upsertLegacyTeamFromEntry(entry);
+  }
+
+  if (removeMissing) {
+    if (tournamentId) {
+      run(
+        `
+          DELETE FROM teams
+          WHERE tournament_id = ?
+            AND id NOT IN (SELECT id FROM entries WHERE tournament_id = ?)
+        `,
+        [tournamentId, tournamentId]
+      );
+    } else {
+      run(
+        `
+          DELETE FROM teams
+          WHERE id NOT IN (SELECT id FROM entries)
+        `
+      );
+    }
+  }
+}
+
+function ensureDemoTournamentBundle(tournamentId) {
+  if (tournamentId !== "tournament-badminton-knockout") return;
+
+  run(
+    `
+      INSERT OR IGNORE INTO tournaments (
+        id, name, short_name, sport_id, format_id, season_label, organizer, location, level,
+        status, entry_mode, start_date, end_date, registration_deadline, team_count, match_count, venue_count,
+        prize_pool, broadcast_channels, tags_json, highlights_json, notes
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    `,
+    [
+      "tournament-badminton-knockout",
+      "滨江羽毛球冠军杯",
+      "滨江冠军杯",
+      "badminton",
+      "single-elimination",
+      "2026 春季收官",
+      "滨江羽协",
+      "上海",
+      "城市邀请赛",
+      "已结束",
+      "entry",
+      "2026-03-12",
+      "2026-03-14",
+      "2026-03-05",
+      8,
+      7,
+      1,
+      120000,
+      "公众号图文 / 现场大屏",
+      json(["已完赛", "淘汰赛", "羽毛球"]),
+      json(["8 强单败淘汰", "半决赛双场地并行", "决赛已完赛"]),
+      "示例数据，用于查看已结束赛事的完整淘汰树。"
+    ]
+  );
+  run(
+    `
+      INSERT OR IGNORE INTO tournament_stages (
+        id, tournament_id, name, stage_type, sequence_no, status, participant_scope, rules_summary,
+        matches_planned, start_date, end_date
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    `,
+    [
+      "stage-bd-knockout",
+      "tournament-badminton-knockout",
+      "淘汰赛",
+      "knockout",
+      1,
+      "已结束",
+      "8 个参赛单元",
+      "8 强到决赛，单败淘汰",
+      7,
+      "2026-03-12",
+      "2026-03-14"
+    ]
+  );
+
+  const badmintonEntries = [
+    ["team-bd-1", "浦江双星", "PJS", 1, "浦江羽球会", "上海", "顾衡", "沈序", { played: 3, won: 3, lost: 0, gamesFor: 6, gamesAgainst: 1 }],
+    ["team-bd-2", "静安锋羽", "JAF", 2, "静安竞羽", "上海", "叶川", "许洲", { played: 3, won: 2, lost: 1, gamesFor: 5, gamesAgainst: 3 }],
+    ["team-bd-3", "徐汇快线", "XHK", 3, "徐汇羽协", "上海", "章越", "苏冉", { played: 2, won: 1, lost: 1, gamesFor: 3, gamesAgainst: 3 }],
+    ["team-bd-4", "闵行白浪", "MHB", 4, "闵行球会", "上海", "陈放", "尹程", { played: 2, won: 1, lost: 1, gamesFor: 3, gamesAgainst: 3 }],
+    ["team-bd-5", "虹桥节奏", "HQJ", 5, "虹桥体育", "上海", "韩岑", "宋弈", { played: 1, won: 0, lost: 1, gamesFor: 1, gamesAgainst: 2 }],
+    ["team-bd-6", "松江羽阵", "SJY", 6, "松江羽联", "上海", "郑渊", "卢航", { played: 1, won: 0, lost: 1, gamesFor: 1, gamesAgainst: 2 }],
+    ["team-bd-7", "杨浦凌风", "YPL", 7, "杨浦体校", "上海", "范识", "高承", { played: 1, won: 0, lost: 1, gamesFor: 0, gamesAgainst: 2 }],
+    ["team-bd-8", "长宁协奏", "CNX", 8, "长宁羽社", "上海", "季策", "陆柯", { played: 1, won: 0, lost: 1, gamesFor: 0, gamesAgainst: 2 }]
+  ];
+
+  for (const item of badmintonEntries) {
+    run(
+      `
+        INSERT OR IGNORE INTO entries (
+          id, tournament_id, entity_type, name, short_name, seed_no, organization, region, coach, contact_name,
+          participant_count, status, stats_json, member_names_json, notes, is_placeholder, legacy_team_id
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      `,
+      [
+        item[0],
+        "tournament-badminton-knockout",
+        "entry",
+        item[1],
+        item[2],
+        item[3],
+        item[4],
+        item[5],
+        item[6],
+        item[7],
+        2,
+        "已确认",
+        json(item[8]),
+        json([]),
+        "",
+        0,
+        null
+      ]
+    );
+  }
+
+  syncLegacyTeamsFromEntries(tournamentId, { removeMissing: true });
+
+  const badmintonMatches = [
+    ["match-bd-1", "1/4 决赛", "K1", "2026-03-12T10:00:00+08:00", "team-bd-1", "team-bd-8", 2, 0, "official-5", "中", "上半区首场"],
+    ["match-bd-2", "1/4 决赛", "K2", "2026-03-12T11:30:00+08:00", "team-bd-4", "team-bd-5", 2, 1, "official-2", "中", "三局决胜"],
+    ["match-bd-3", "1/4 决赛", "K3", "2026-03-12T14:00:00+08:00", "team-bd-2", "team-bd-7", 2, 0, "official-1", "中", "下半区首场"],
+    ["match-bd-4", "1/4 决赛", "K4", "2026-03-12T15:30:00+08:00", "team-bd-3", "team-bd-6", 2, 1, "official-2", "中", "末场鏖战"],
+    ["match-bd-5", "半决赛", "K5", "2026-03-13T14:00:00+08:00", "team-bd-1", "team-bd-4", 2, 0, "official-5", "高", "上半区晋级战"],
+    ["match-bd-6", "半决赛", "K6", "2026-03-13T16:00:00+08:00", "team-bd-2", "team-bd-3", 2, 1, "official-1", "高", "决赛席位争夺"],
+    ["match-bd-7", "决赛", "K7", "2026-03-14T19:00:00+08:00", "team-bd-1", "team-bd-2", 2, 1, "official-4", "极高", "冠军战"]
+  ];
+
+  for (const item of badmintonMatches) {
+    run(
+      `
+        INSERT OR IGNORE INTO matches (
+          id, tournament_id, stage_id, round_label, bracket_slot, scheduled_at, venue_id, home_team_id,
+          away_team_id, home_score, away_score, status, stream_status, official_id, importance_level, notes, phase_type
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      `,
+      [
+        item[0],
+        "tournament-badminton-knockout",
+        "stage-bd-knockout",
+        item[1],
+        item[2],
+        item[3],
+        "venue-xuhui-racket",
+        item[4],
+        item[5],
+        item[6],
+        item[7],
+        "已结束",
+        "已完成",
+        item[8],
+        item[9],
+        item[10],
+        "knockout"
+      ]
+    );
+  }
+
+  run(
+    `
+      INSERT OR IGNORE INTO operation_tasks (
+        id, tournament_id, title, category, assignee, priority, due_date, status
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+    `,
+    ["task-7", "tournament-badminton-knockout", "完赛资料归档", "运营", "宁舟", "低", "2026-03-15", "已完成"]
+  );
+
+  run(
+    `
+      INSERT OR IGNORE INTO activity_logs (
+        id, actor_id, actor_name, actor_role, action, target_type, target_id, target_name, detail_json, created_at
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    `,
+    [
+      "log-seed-5",
+      "user-director",
+      "周聿",
+      "director",
+      "赛事完赛",
+      "tournament",
+      "tournament-badminton-knockout",
+      "滨江羽毛球冠军杯",
+      json({ champion: "浦江双星" }),
+      "2026-03-14T21:10:00+08:00"
+    ]
+  );
+}
+
+function ensureFinishedGroupKnockoutBundle() {
+  const tournamentId = "tournament-harbor-group-finale";
+
+  run(
+    `
+      INSERT OR IGNORE INTO tournaments (
+        id, name, short_name, sport_id, format_id, season_label, organizer, location, level,
+        status, entry_mode, start_date, end_date, registration_deadline, team_count, match_count, venue_count,
+        prize_pool, broadcast_channels, tags_json, highlights_json, notes
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    `,
+    [
+      tournamentId,
+      "海港城市精英邀请赛",
+      "海港精英赛",
+      "football",
+      "group-knockout",
+      "2026 冬季完结",
+      "海港赛事运营中心",
+      "上海",
+      "城市邀请赛",
+      "已结束",
+      "team",
+      "2026-02-18",
+      "2026-02-23",
+      "2026-02-08",
+      8,
+      15,
+      1,
+      180000,
+      "赛事回放 / 图文战报",
+      json(["已完赛", "小组赛+淘汰赛", "足球"]),
+      json(["A/B 两组单循环", "前二交叉淘汰", "决赛 3:2 收官"]),
+      "示例数据，用于查看已结束的小组赛与淘汰赛完整流程。"
+    ]
+  );
+
+  run(
+    `
+      INSERT OR IGNORE INTO tournament_stages (
+        id, tournament_id, name, stage_type, sequence_no, status, participant_scope, rules_summary,
+        matches_planned, start_date, end_date
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    `,
+    [
+      "stage-gkf-groups",
+      tournamentId,
+      "小组赛",
+      "group",
+      1,
+      "已结束",
+      "8 队分 2 组",
+      "A/B 两组单循环，每组前二晋级淘汰赛",
+      12,
+      "2026-02-18",
+      "2026-02-21"
+    ]
+  );
+
+  run(
+    `
+      INSERT OR IGNORE INTO tournament_stages (
+        id, tournament_id, name, stage_type, sequence_no, status, participant_scope, rules_summary,
+        matches_planned, start_date, end_date
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    `,
+    [
+      "stage-gkf-knockout",
+      tournamentId,
+      "淘汰赛",
+      "knockout",
+      2,
+      "已结束",
+      "4 队",
+      "小组前二交叉进入半决赛，单败淘汰至决赛",
+      3,
+      "2026-02-22",
+      "2026-02-23"
+    ]
+  );
+
+  const entries = [
+    ["team-gkf-1", "北城联队", "BCL", 1, "北城青训", "上海", "顾远", "林既"],
+    ["team-gkf-2", "江湾竞技", "JWJ", 2, "江湾俱乐部", "上海", "程策", "方齐"],
+    ["team-gkf-3", "临港蓝潮", "LGL", 3, "临港体育", "上海", "宋峥", "于森"],
+    ["team-gkf-4", "申港之星", "SGZ", 4, "申港足球会", "上海", "邵临", "严舟"],
+    ["team-gkf-5", "虹口钢翼", "HKG", 5, "虹口竞技", "上海", "唐越", "齐原"],
+    ["team-gkf-6", "苏河先锋", "SHX", 6, "苏河足球学院", "上海", "梁策", "孟朔"],
+    ["team-gkf-7", "浦西航标", "PXH", 7, "浦西体校", "上海", "韩川", "高汀"],
+    ["team-gkf-8", "滨江远征", "BJY", 8, "滨江体育发展会", "上海", "郑鸣", "纪衡"]
+  ];
+
+  for (const item of entries) {
+    run(
+      `
+        INSERT OR IGNORE INTO entries (
+          id, tournament_id, entity_type, name, short_name, seed_no, organization, region, coach, contact_name,
+          participant_count, status, stats_json, member_names_json, notes, is_placeholder, legacy_team_id
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      `,
+      [
+        item[0],
+        tournamentId,
+        "team",
+        item[1],
+        item[2],
+        item[3],
+        item[4],
+        item[5],
+        item[6],
+        item[7],
+        26,
+        "已确认",
+        json({ played: 0, won: 0, lost: 0, drawn: 0, scoreFor: 0, scoreAgainst: 0, points: 0 }),
+        json([]),
+        "",
+        0,
+        null
+      ]
+    );
+  }
+
+  syncLegacyTeamsFromEntries(tournamentId, { removeMissing: true });
+
+  const matches = [
+    ["match-gkf-a1", "stage-gkf-groups", "A 组第 1 轮", "GA1", "2026-02-18T13:30:00+08:00", "team-gkf-1", "team-gkf-7", 3, 1, "official-1", "中", "A 组揭幕战", "group"],
+    ["match-gkf-a2", "stage-gkf-groups", "A 组第 1 轮", "GA2", "2026-02-18T16:00:00+08:00", "team-gkf-3", "team-gkf-5", 2, 1, "official-2", "中", "A 组次场", "group"],
+    ["match-gkf-a3", "stage-gkf-groups", "A 组第 2 轮", "GA3", "2026-02-19T13:30:00+08:00", "team-gkf-1", "team-gkf-5", 2, 0, "official-1", "中", "头名追赶战", "group"],
+    ["match-gkf-a4", "stage-gkf-groups", "A 组第 2 轮", "GA4", "2026-02-19T16:00:00+08:00", "team-gkf-7", "team-gkf-3", 0, 2, "official-2", "中", "A 组晚场", "group"],
+    ["match-gkf-a5", "stage-gkf-groups", "A 组第 3 轮", "GA5", "2026-02-20T13:30:00+08:00", "team-gkf-1", "team-gkf-3", 2, 1, "official-4", "高", "A 组头名战", "group"],
+    ["match-gkf-a6", "stage-gkf-groups", "A 组第 3 轮", "GA6", "2026-02-20T16:00:00+08:00", "team-gkf-5", "team-gkf-7", 3, 1, "official-5", "中", "A 组收官", "group"],
+    ["match-gkf-b1", "stage-gkf-groups", "B 组第 1 轮", "GB1", "2026-02-18T19:00:00+08:00", "team-gkf-2", "team-gkf-8", 1, 1, "official-1", "中", "B 组揭幕战", "group"],
+    ["match-gkf-b2", "stage-gkf-groups", "B 组第 1 轮", "GB2", "2026-02-18T21:00:00+08:00", "team-gkf-4", "team-gkf-6", 2, 0, "official-2", "中", "B 组次场", "group"],
+    ["match-gkf-b3", "stage-gkf-groups", "B 组第 2 轮", "GB3", "2026-02-19T19:00:00+08:00", "team-gkf-2", "team-gkf-6", 2, 1, "official-1", "中", "B 组夜场", "group"],
+    ["match-gkf-b4", "stage-gkf-groups", "B 组第 2 轮", "GB4", "2026-02-19T21:00:00+08:00", "team-gkf-8", "team-gkf-4", 1, 2, "official-5", "中", "B 组追分战", "group"],
+    ["match-gkf-b5", "stage-gkf-groups", "B 组第 3 轮", "GB5", "2026-02-20T19:00:00+08:00", "team-gkf-2", "team-gkf-4", 1, 1, "official-4", "高", "B 组头名战", "group"],
+    ["match-gkf-b6", "stage-gkf-groups", "B 组第 3 轮", "GB6", "2026-02-20T21:00:00+08:00", "team-gkf-6", "team-gkf-8", 1, 2, "official-2", "中", "B 组收官", "group"],
+    ["match-gkf-k1", "stage-gkf-knockout", "半决赛", "K1", "2026-02-22T15:00:00+08:00", "team-gkf-1", "team-gkf-2", 2, 1, "official-4", "高", "A1 对 B2", "knockout"],
+    ["match-gkf-k2", "stage-gkf-knockout", "半决赛", "K2", "2026-02-22T19:00:00+08:00", "team-gkf-4", "team-gkf-3", 1, 0, "official-5", "高", "B1 对 A2", "knockout"],
+    ["match-gkf-k3", "stage-gkf-knockout", "决赛", "K3", "2026-02-23T19:30:00+08:00", "team-gkf-1", "team-gkf-4", 3, 2, "official-4", "极高", "冠军战", "knockout"]
+  ];
+
+  for (const item of matches) {
+    run(
+      `
+        INSERT OR IGNORE INTO matches (
+          id, tournament_id, stage_id, round_label, bracket_slot, scheduled_at, venue_id, home_team_id,
+          away_team_id, home_score, away_score, status, stream_status, official_id, importance_level, notes, phase_type
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      `,
+      [
+        item[0],
+        tournamentId,
+        item[1],
+        item[2],
+        item[3],
+        item[4],
+        "venue-hongkou",
+        item[5],
+        item[6],
+        item[7],
+        item[8],
+        "已结束",
+        "已完成",
+        item[9],
+        item[10],
+        item[11],
+        item[12]
+      ]
+    );
+  }
+
+  updateEntryStatsFromMatches(tournamentId);
+  run(
+    "UPDATE tournaments SET team_count = (SELECT COUNT(*) FROM entries WHERE tournament_id = ?), match_count = (SELECT COUNT(*) FROM matches WHERE tournament_id = ?) WHERE id = ?",
+    [tournamentId, tournamentId, tournamentId]
+  );
+
+  run(
+    `
+      INSERT OR IGNORE INTO operation_tasks (
+        id, tournament_id, title, category, assignee, priority, due_date, status
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+    `,
+    ["task-gkf-archive", tournamentId, "完赛资料归档", "运营", "宁舟", "低", "2026-02-24", "已完成"]
+  );
+
+  run(
+    `
+      INSERT OR IGNORE INTO activity_logs (
+        id, actor_id, actor_name, actor_role, action, target_type, target_id, target_name, detail_json, created_at
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    `,
+    [
+      "log-seed-gkf-finished",
+      "user-director",
+      "周聿",
+      "director",
+      "赛事完赛",
+      "tournament",
+      tournamentId,
+      "海港城市精英邀请赛",
+      json({ champion: "北城联队", format: "group-knockout" }),
+      "2026-02-23T22:00:00+08:00"
+    ]
+  );
+}
+
+function seedTournamentSeriesLinks() {
+  const links = [
+    {
+      childTournamentId: "tournament-national-basketball-finals",
+      parentTournamentId: "",
+      seriesName: "东部城市冠军体系",
+      seriesLevel: "national",
+      stageLabel: "全国总决赛",
+      qualifiesToCount: 0,
+      qualifyRule: ""
+    },
+    {
+      childTournamentId: "tournament-hoops-league",
+      parentTournamentId: "tournament-national-basketball-finals",
+      seriesName: "东部城市冠军体系",
+      seriesLevel: "province",
+      stageLabel: "华东省级总决赛",
+      qualifiesToCount: 1,
+      qualifyRule: "省级冠军晋级全国总决赛"
+    },
+    {
+      childTournamentId: "tournament-city-basketball-qualifier",
+      parentTournamentId: "tournament-hoops-league",
+      seriesName: "东部城市冠军体系",
+      seriesLevel: "city",
+      stageLabel: "上海市选拔",
+      qualifiesToCount: 2,
+      qualifyRule: "冠军与亚军晋级省级总决赛"
+    }
+  ];
+
+  for (const link of links) {
+    upsertTournamentSeriesLink(link.childTournamentId, link);
+  }
+}
+
+function ensureDemoDataConsistency() {
+  seedSports();
+  seedFormats();
+  seedVenues();
+  seedOfficials();
+  seedUsers();
+  ensureDemoTournamentBundle("tournament-badminton-knockout");
+  ensureFinishedGroupKnockoutBundle();
+  seedTournamentSeriesLinks();
 }
 
 function normalizeTournamentEntryModes() {
@@ -2155,6 +3005,30 @@ function seedOfficials() {
 function seedTournaments() {
   const tournaments = [
     {
+      id: "tournament-city-basketball-qualifier",
+      name: "上海城市篮球选拔赛",
+      shortName: "上海选拔赛",
+      sportId: "basketball",
+      formatId: "single-elimination",
+      seasonLabel: "2026 城市赛",
+      organizer: "上海市篮球协会",
+      location: "上海",
+      level: "市级选拔赛",
+      status: "已结束",
+      entryMode: "team",
+      startDate: "2026-04-08",
+      endDate: "2026-04-12",
+      registrationDeadline: "2026-04-01",
+      teamCount: 8,
+      matchCount: 7,
+      venueCount: 1,
+      prizePool: 80000,
+      broadcastChannels: "现场大屏 / 图文战报",
+      tags: ["市级", "篮球", "已完赛"],
+      highlights: ["城市冠军产生", "冠亚军晋级省级赛", "淘汰赛单线完成"],
+      notes: "作为省级总决赛的城市选拔节点，前两名晋级。"
+    },
+    {
       id: "tournament-super-cup",
       name: "城市超级杯足球邀请赛",
       shortName: "城市超级杯",
@@ -2187,7 +3061,7 @@ function seedTournaments() {
       seasonLabel: "2026 赛季",
       organizer: "东岸体育文化",
       location: "上海",
-      level: "商业联赛",
+      level: "省级总决赛",
       status: "报名中",
       entryMode: "team",
       startDate: "2026-06-10",
@@ -2199,8 +3073,32 @@ function seedTournaments() {
       prizePool: 450000,
       broadcastChannels: "咪咕体育 / 公众号图文",
       tags: ["赞助招商", "票务", "球员数据"],
-      highlights: ["主客场双循环", "技术统计全量采集", "总决赛三场两胜"],
-      notes: "联赛期长，需要完善赛程重排和主客场冲突处理。"
+      highlights: ["省级总决赛", "技术统计全量采集", "冠军晋级全国总决赛"],
+      notes: "作为省级总决赛节点，需要承接各城市选拔晋级队伍。"
+    },
+    {
+      id: "tournament-national-basketball-finals",
+      name: "全国篮球冠军总决赛",
+      shortName: "全国总决赛",
+      sportId: "basketball",
+      formatId: "group-knockout",
+      seasonLabel: "2026 全国赛",
+      organizer: "中国城市篮球联赛委员会",
+      location: "北京",
+      level: "全国总决赛",
+      status: "筹备中",
+      entryMode: "team",
+      startDate: "2026-09-18",
+      endDate: "2026-09-28",
+      registrationDeadline: "2026-09-02",
+      teamCount: 8,
+      matchCount: 16,
+      venueCount: 2,
+      prizePool: 1200000,
+      broadcastChannels: "央视体育 / 咪咕体育 / 新媒体矩阵",
+      tags: ["全国", "篮球", "总决赛"],
+      highlights: ["八城冠军会师", "小组赛后交叉淘汰", "全国冠军争夺"],
+      notes: "汇总各省级赛冠军，形成全国总决赛。"
     },
     {
       id: "tournament-esports-masters",
@@ -2225,6 +3123,30 @@ function seedTournaments() {
       tags: ["双败", "直播制作", "赞助权益"],
       highlights: ["胜败者组并行", "直播流管理", "选手休息室排班"],
       notes: "需要重点跟踪导播、串流状态和总决赛重置逻辑。"
+    },
+    {
+      id: "tournament-badminton-knockout",
+      name: "滨江羽毛球冠军杯",
+      shortName: "滨江冠军杯",
+      sportId: "badminton",
+      formatId: "single-elimination",
+      seasonLabel: "2026 春季收官",
+      organizer: "滨江羽协",
+      location: "上海",
+      level: "城市邀请赛",
+      status: "已结束",
+      entryMode: "entry",
+      startDate: "2026-03-12",
+      endDate: "2026-03-14",
+      registrationDeadline: "2026-03-05",
+      teamCount: 8,
+      matchCount: 7,
+      venueCount: 1,
+      prizePool: 120000,
+      broadcastChannels: "公众号图文 / 现场大屏",
+      tags: ["已完赛", "淘汰赛", "羽毛球"],
+      highlights: ["8 强单败淘汰", "半决赛双场地并行", "决赛已完赛"],
+      notes: "示例数据，用于查看已结束赛事的完整淘汰树。"
     },
     {
       id: "tournament-swim-open",
@@ -2294,12 +3216,16 @@ function seedTournaments() {
 
 function seedStages() {
   const stages = [
+    ["stage-bb-city-knockout", "tournament-city-basketball-qualifier", "城市淘汰赛", "knockout", 1, "已结束", "8 队", "8 强到决赛，冠亚军晋级省级赛", 7, "2026-04-08", "2026-04-12"],
     ["stage-fb-groups", "tournament-super-cup", "小组赛", "group", 1, "进行中", "16 队分 4 组", "组内单循环，前二出线", 24, "2026-05-02", "2026-05-11"],
     ["stage-fb-knockout", "tournament-super-cup", "淘汰赛", "knockout", 2, "未开始", "8 队", "八强至决赛，单败淘汰", 8, "2026-05-13", "2026-05-18"],
     ["stage-bb-regular", "tournament-hoops-league", "常规赛", "league", 1, "报名中", "12 队", "主客场双循环积分排名", 132, "2026-06-10", "2026-08-18"],
     ["stage-bb-finals", "tournament-hoops-league", "总决赛", "knockout", 2, "未开始", "前四", "半决赛单场，总决赛三场两胜", 5, "2026-08-22", "2026-08-28"],
+    ["stage-bb-national-groups", "tournament-national-basketball-finals", "全国小组赛", "group", 1, "筹备中", "8 队分 2 组", "双组单循环，每组前二晋级淘汰赛", 12, "2026-09-18", "2026-09-23"],
+    ["stage-bb-national-knockout", "tournament-national-basketball-finals", "全国淘汰赛", "knockout", 2, "筹备中", "4 队", "半决赛到决赛，单败淘汰", 3, "2026-09-25", "2026-09-28"],
     ["stage-es-upper", "tournament-esports-masters", "胜者组", "upper-bracket", 1, "进行中", "8 队", "双败淘汰胜者线", 7, "2026-04-25", "2026-05-02"],
     ["stage-es-lower", "tournament-esports-masters", "败者组", "lower-bracket", 2, "进行中", "败者队伍", "双败淘汰败者线", 6, "2026-04-26", "2026-05-03"],
+    ["stage-bd-knockout", "tournament-badminton-knockout", "淘汰赛", "knockout", 1, "已结束", "8 个参赛单元", "8 强到决赛，单败淘汰", 7, "2026-03-12", "2026-03-14"],
     ["stage-sw-heats", "tournament-swim-open", "预赛", "qualifier", 1, "筹备中", "24 队/个人", "分组计时取前八", 24, "2026-07-12", "2026-07-13"],
     ["stage-sw-finals", "tournament-swim-open", "决赛", "final", 2, "筹备中", "A/B 决赛", "按成绩编道出发", 12, "2026-07-14", "2026-07-14"]
   ];
@@ -2318,16 +3244,34 @@ function seedStages() {
 
 function seedEntries() {
   const entries = [
+    ["entry-bb-city-1", "tournament-city-basketball-qualifier", "team", "浦东飓风", "PDJ", 1, "浦东体育", "上海", "陆骁", "齐原", 15, "已确认", { played: 3, won: 3, lost: 0, pointsFor: 241, pointsAgainst: 208 }],
+    ["entry-bb-city-2", "tournament-city-basketball-qualifier", "team", "虹桥引擎", "HQY", 2, "虹桥俱乐部", "上海", "沈竞", "周致", 15, "已确认", { played: 3, won: 2, lost: 1, pointsFor: 228, pointsAgainst: 214 }],
+    ["entry-bb-city-3", "tournament-city-basketball-qualifier", "team", "静安脉冲", "JAM", 3, "静安体育", "上海", "傅铎", "钱越", 15, "已确认", { played: 1, won: 0, lost: 1, pointsFor: 71, pointsAgainst: 78 }],
+    ["entry-bb-city-4", "tournament-city-basketball-qualifier", "team", "徐汇边线", "XHB", 4, "徐汇篮球中心", "上海", "吕川", "顾临", 15, "已确认", { played: 1, won: 0, lost: 1, pointsFor: 69, pointsAgainst: 77 }],
+    ["entry-bb-city-5", "tournament-city-basketball-qualifier", "team", "闵行冲击", "MHC", 5, "闵行青训", "上海", "叶峻", "苏淮", 15, "已确认", { played: 1, won: 0, lost: 1, pointsFor: 74, pointsAgainst: 81 }],
+    ["entry-bb-city-6", "tournament-city-basketball-qualifier", "team", "长宁弧光", "CNG", 6, "长宁体校", "上海", "梁舟", "方颂", 15, "已确认", { played: 1, won: 0, lost: 1, pointsFor: 66, pointsAgainst: 73 }],
+    ["entry-bb-city-7", "tournament-city-basketball-qualifier", "team", "杨浦快攻", "YPK", 7, "杨浦篮球会", "上海", "季澈", "高野", 15, "已确认", { played: 1, won: 0, lost: 1, pointsFor: 62, pointsAgainst: 80 }],
+    ["entry-bb-city-8", "tournament-city-basketball-qualifier", "team", "松江纵深", "SJZ", 8, "松江训练营", "上海", "陈序", "鲁洵", 15, "已确认", { played: 1, won: 0, lost: 1, pointsFor: 68, pointsAgainst: 75 }],
     ["entry-fb-1", "tournament-super-cup", "team", "申城联队", "SCL", 1, "申城青训", "上海", "顾尧", "季岩", 28, "已确认", { played: 2, won: 2, lost: 0, scoreFor: 5, scoreAgainst: 1 }],
     ["entry-fb-2", "tournament-super-cup", "team", "海港青年", "HGQ", 2, "海港学院", "上海", "唐越", "陆泽", 26, "已确认", { played: 2, won: 1, lost: 1, scoreFor: 3, scoreAgainst: 2 }],
     ["entry-fb-3", "tournament-super-cup", "team", "苏城竞技", "SCJ", 3, "苏城体育", "苏州", "汪廷", "郝凡", 27, "已确认", { played: 2, won: 1, lost: 1, scoreFor: 4, scoreAgainst: 4 }],
     ["entry-fb-4", "tournament-super-cup", "team", "杭城先锋", "HCX", 4, "杭城俱乐部", "杭州", "邵宁", "孟辰", 27, "待补材料", { played: 2, won: 0, lost: 2, scoreFor: 1, scoreAgainst: 6 }],
     ["entry-bb-1", "tournament-hoops-league", "team", "东岸骑士", "DAQ", 1, "东岸俱乐部", "上海", "林策", "郑野", 18, "待审核", { played: 0, won: 0, lost: 0, pointsFor: 0, pointsAgainst: 0 }],
     ["entry-bb-2", "tournament-hoops-league", "team", "北湾烈焰", "BWL", 2, "北湾体育", "宁波", "陈律", "何启", 18, "已报名", { played: 0, won: 0, lost: 0, pointsFor: 0, pointsAgainst: 0 }],
+    ["entry-bb-national-1", "tournament-national-basketball-finals", "team", "东岸骑士", "DAQ", 1, "东岸俱乐部", "上海", "林策", "郑野", 18, "待确认", { played: 0, won: 0, lost: 0, pointsFor: 0, pointsAgainst: 0 }],
+    ["entry-bb-national-2", "tournament-national-basketball-finals", "team", "南岭火种", "NLH", 2, "南岭体育", "广州", "贺舶", "丁策", 18, "待确认", { played: 0, won: 0, lost: 0, pointsFor: 0, pointsAgainst: 0 }],
     ["entry-es-1", "tournament-esports-masters", "team", "Nova Pulse", "NVP", 1, "Nova Pulse", "上海", "Aren", "Mio", 6, "已确认", { played: 3, won: 3, lost: 0, roundsFor: 7, roundsAgainst: 2 }],
     ["entry-es-2", "tournament-esports-masters", "team", "Crimson Unit", "CRU", 2, "Crimson Unit", "广州", "Frost", "K", 6, "已确认", { played: 3, won: 2, lost: 1, roundsFor: 6, roundsAgainst: 4 }],
     ["entry-es-3", "tournament-esports-masters", "team", "Blue Circuit", "BLC", 3, "Blue Circuit", "成都", "Sage", "Volt", 6, "已确认", { played: 2, won: 1, lost: 1, roundsFor: 3, roundsAgainst: 3 }],
     ["entry-es-4", "tournament-esports-masters", "team", "Iron Harbor", "IRH", 4, "Iron Harbor", "北京", "Knox", "Ray", 6, "已确认", { played: 2, won: 0, lost: 2, roundsFor: 1, roundsAgainst: 4 }],
+    ["team-bd-1", "tournament-badminton-knockout", "entry", "浦江双星", "PJS", 1, "浦江羽球会", "上海", "顾衡", "沈序", 2, "已确认", { played: 3, won: 3, lost: 0, gamesFor: 6, gamesAgainst: 1 }],
+    ["team-bd-2", "tournament-badminton-knockout", "entry", "静安锋羽", "JAF", 2, "静安竞羽", "上海", "叶川", "许洲", 2, "已确认", { played: 3, won: 2, lost: 1, gamesFor: 5, gamesAgainst: 3 }],
+    ["team-bd-3", "tournament-badminton-knockout", "entry", "徐汇快线", "XHK", 3, "徐汇羽协", "上海", "章越", "苏冉", 2, "已确认", { played: 2, won: 1, lost: 1, gamesFor: 3, gamesAgainst: 3 }],
+    ["team-bd-4", "tournament-badminton-knockout", "entry", "闵行白浪", "MHB", 4, "闵行球会", "上海", "陈放", "尹程", 2, "已确认", { played: 2, won: 1, lost: 1, gamesFor: 3, gamesAgainst: 3 }],
+    ["team-bd-5", "tournament-badminton-knockout", "entry", "虹桥节奏", "HQJ", 5, "虹桥体育", "上海", "韩岑", "宋弈", 2, "已确认", { played: 1, won: 0, lost: 1, gamesFor: 1, gamesAgainst: 2 }],
+    ["team-bd-6", "tournament-badminton-knockout", "entry", "松江羽阵", "SJY", 6, "松江羽联", "上海", "郑渊", "卢航", 2, "已确认", { played: 1, won: 0, lost: 1, gamesFor: 1, gamesAgainst: 2 }],
+    ["team-bd-7", "tournament-badminton-knockout", "entry", "杨浦凌风", "YPL", 7, "杨浦体校", "上海", "范识", "高承", 2, "已确认", { played: 1, won: 0, lost: 1, gamesFor: 0, gamesAgainst: 2 }],
+    ["team-bd-8", "tournament-badminton-knockout", "entry", "长宁协奏", "CNX", 8, "长宁羽社", "上海", "季策", "陆柯", 2, "已确认", { played: 1, won: 0, lost: 1, gamesFor: 0, gamesAgainst: 2 }],
     ["entry-sw-1", "tournament-swim-open", "participant", "韩未", "韩未", 1, "浦东泳协", "上海", "周朔", "韩未", 1, "待检录", { entries: 1, finalists: 0, medals: 0 }],
     ["entry-sw-2", "tournament-swim-open", "participant", "罗溪", "罗溪", 2, "闵行泳协", "上海", "于森", "罗溪", 1, "待检录", { entries: 1, finalists: 0, medals: 0 }],
     ["entry-sw-3", "tournament-swim-open", "participant", "顾年", "顾年", 3, "徐汇泳协", "上海", "赵旻", "顾年", 1, "待检录", { entries: 1, finalists: 0, medals: 0 }]
@@ -2347,13 +3291,28 @@ function seedEntries() {
 
 function seedMatches() {
   const matches = [
+    ["match-bbc-1", "tournament-city-basketball-qualifier", "stage-bb-city-knockout", "1/4 决赛", "C1", "2026-04-08T14:00:00+08:00", "venue-pudong-arena", "entry-bb-city-1", "entry-bb-city-8", 91, 73, "已结束", "已完成", "official-5", "中", "城市赛揭幕战", "knockout"],
+    ["match-bbc-2", "tournament-city-basketball-qualifier", "stage-bb-city-knockout", "1/4 决赛", "C2", "2026-04-08T19:00:00+08:00", "venue-pudong-arena", "entry-bb-city-4", "entry-bb-city-5", 77, 69, "已结束", "已完成", "official-2", "中", "上半区第二场", "knockout"],
+    ["match-bbc-3", "tournament-city-basketball-qualifier", "stage-bb-city-knockout", "1/4 决赛", "C3", "2026-04-09T14:00:00+08:00", "venue-pudong-arena", "entry-bb-city-2", "entry-bb-city-7", 88, 74, "已结束", "已完成", "official-5", "中", "下半区第一场", "knockout"],
+    ["match-bbc-4", "tournament-city-basketball-qualifier", "stage-bb-city-knockout", "1/4 决赛", "C4", "2026-04-09T19:00:00+08:00", "venue-pudong-arena", "entry-bb-city-3", "entry-bb-city-6", 71, 79, "已结束", "已完成", "official-2", "中", "下半区第二场", "knockout"],
+    ["match-bbc-5", "tournament-city-basketball-qualifier", "stage-bb-city-knockout", "半决赛", "C5", "2026-04-10T19:00:00+08:00", "venue-pudong-arena", "entry-bb-city-1", "entry-bb-city-4", 80, 71, "已结束", "已完成", "official-5", "高", "上半区晋级战", "knockout"],
+    ["match-bbc-6", "tournament-city-basketball-qualifier", "stage-bb-city-knockout", "半决赛", "C6", "2026-04-11T19:00:00+08:00", "venue-pudong-arena", "entry-bb-city-2", "entry-bb-city-6", 83, 68, "已结束", "已完成", "official-1", "高", "下半区晋级战", "knockout"],
+    ["match-bbc-7", "tournament-city-basketball-qualifier", "stage-bb-city-knockout", "决赛", "C7", "2026-04-12T19:30:00+08:00", "venue-pudong-arena", "entry-bb-city-1", "entry-bb-city-2", 70, 67, "已结束", "已完成", "official-4", "极高", "冠亚军同时晋级省级赛", "knockout"],
     ["match-fb-1", "tournament-super-cup", "stage-fb-groups", "A 组第 1 轮", "A1", "2026-05-02T18:30:00+08:00", "venue-hongkou", "entry-fb-1", "entry-fb-4", 3, 1, "已结束", "已完成", "official-1", "高", "揭幕战", "group"],
     ["match-fb-2", "tournament-super-cup", "stage-fb-groups", "A 组第 2 轮", "A2", "2026-05-05T18:30:00+08:00", "venue-hongkou", "entry-fb-2", "entry-fb-3", 2, 2, "已结束", "已完成", "official-2", "中", "补时阶段扳平", "group"],
     ["match-fb-3", "tournament-super-cup", "stage-fb-groups", "A 组第 3 轮", "A3", "2026-05-08T19:00:00+08:00", "venue-hongkou", "entry-fb-1", "entry-fb-2", 0, 0, "待进行", "待开启", "official-1", "高", "小组头名争夺", "group"],
     ["match-bb-1", "tournament-hoops-league", "stage-bb-regular", "第 1 轮", "R1-G1", "2026-06-10T19:30:00+08:00", "venue-pudong-arena", "entry-bb-1", "entry-bb-2", 0, 0, "待进行", "待排期", "official-5", "高", "赛季揭幕战", "league"],
+    ["match-bbn-1", "tournament-national-basketball-finals", "stage-bb-national-groups", "A 组第 1 轮", "NA1", "2026-09-18T19:30:00+08:00", "venue-pudong-arena", "entry-bb-national-1", "entry-bb-national-2", 0, 0, "待进行", "待排期", "official-4", "极高", "全国总决赛揭幕战", "group"],
     ["match-es-1", "tournament-esports-masters", "stage-es-upper", "胜者组首轮", "U1", "2026-04-25T14:00:00+08:00", "venue-jingan-esports", "entry-es-1", "entry-es-4", 2, 0, "已结束", "已完成", "official-3", "高", "主舞台 BO3", "upper-bracket"],
     ["match-es-2", "tournament-esports-masters", "stage-es-upper", "胜者组半决赛", "U2", "2026-04-26T16:00:00+08:00", "venue-jingan-esports", "entry-es-1", "entry-es-2", 2, 1, "进行中", "直播中", "official-4", "极高", "峰值在线 12 万", "upper-bracket"],
-    ["match-es-3", "tournament-esports-masters", "stage-es-lower", "败者组首轮", "L1", "2026-04-26T19:30:00+08:00", "venue-jingan-esports", "entry-es-3", "entry-es-4", 0, 0, "待进行", "待开启", "official-3", "中", "败者生死战", "lower-bracket"]
+    ["match-es-3", "tournament-esports-masters", "stage-es-lower", "败者组首轮", "L1", "2026-04-26T19:30:00+08:00", "venue-jingan-esports", "entry-es-3", "entry-es-4", 0, 0, "待进行", "待开启", "official-3", "中", "败者生死战", "lower-bracket"],
+    ["match-bd-1", "tournament-badminton-knockout", "stage-bd-knockout", "1/4 决赛", "K1", "2026-03-12T10:00:00+08:00", "venue-xuhui-racket", "team-bd-1", "team-bd-8", 2, 0, "已结束", "已完成", "official-5", "中", "上半区首场", "knockout"],
+    ["match-bd-2", "tournament-badminton-knockout", "stage-bd-knockout", "1/4 决赛", "K2", "2026-03-12T11:30:00+08:00", "venue-xuhui-racket", "team-bd-4", "team-bd-5", 2, 1, "已结束", "已完成", "official-2", "中", "三局决胜", "knockout"],
+    ["match-bd-3", "tournament-badminton-knockout", "stage-bd-knockout", "1/4 决赛", "K3", "2026-03-12T14:00:00+08:00", "venue-xuhui-racket", "team-bd-2", "team-bd-7", 2, 0, "已结束", "已完成", "official-1", "中", "下半区首场", "knockout"],
+    ["match-bd-4", "tournament-badminton-knockout", "stage-bd-knockout", "1/4 决赛", "K4", "2026-03-12T15:30:00+08:00", "venue-xuhui-racket", "team-bd-3", "team-bd-6", 2, 1, "已结束", "已完成", "official-2", "中", "末场鏖战", "knockout"],
+    ["match-bd-5", "tournament-badminton-knockout", "stage-bd-knockout", "半决赛", "K5", "2026-03-13T14:00:00+08:00", "venue-xuhui-racket", "team-bd-1", "team-bd-4", 2, 0, "已结束", "已完成", "official-5", "高", "上半区晋级战", "knockout"],
+    ["match-bd-6", "tournament-badminton-knockout", "stage-bd-knockout", "半决赛", "K6", "2026-03-13T16:00:00+08:00", "venue-xuhui-racket", "team-bd-2", "team-bd-3", 2, 1, "已结束", "已完成", "official-1", "高", "决赛席位争夺", "knockout"],
+    ["match-bd-7", "tournament-badminton-knockout", "stage-bd-knockout", "决赛", "K7", "2026-03-14T19:00:00+08:00", "venue-xuhui-racket", "team-bd-1", "team-bd-2", 2, 1, "已结束", "已完成", "official-4", "极高", "冠军战", "knockout"]
   ];
 
   const stmt = db.prepare(`
@@ -2390,12 +3349,15 @@ function seedRegistrations() {
 
 function seedTasks() {
   const tasks = [
+    ["task-bb-city-1", "tournament-city-basketball-qualifier", "确认晋级名单同步省级赛", "竞赛", "周澈", "高", "2026-04-13", "已完成"],
     ["task-1", "tournament-super-cup", "完成八强赛程锁场", "场地", "孙颂", "高", "2026-05-09", "处理中"],
     ["task-2", "tournament-super-cup", "直播导播脚本终审", "直播", "朱颖", "高", "2026-05-08", "待处理"],
     ["task-3", "tournament-esports-masters", "总决赛赞助权益排布", "商务", "陆格", "中", "2026-05-01", "处理中"],
     ["task-4", "tournament-esports-masters", "败者组设备热备检查", "技术", "石亦", "高", "2026-04-26", "待处理"],
     ["task-5", "tournament-hoops-league", "报名队伍资质复审", "报名", "彭睿", "中", "2026-05-18", "待处理"],
-    ["task-6", "tournament-swim-open", "预赛检录规则确认", "竞赛", "高谦", "高", "2026-07-05", "待处理"]
+    ["task-bb-national-1", "tournament-national-basketball-finals", "收集各省级冠军队资料", "报名", "蒋策", "高", "2026-09-05", "待处理"],
+    ["task-6", "tournament-swim-open", "预赛检录规则确认", "竞赛", "高谦", "高", "2026-07-05", "待处理"],
+    ["task-7", "tournament-badminton-knockout", "完赛资料归档", "运营", "宁舟", "低", "2026-03-15", "已完成"]
   ];
 
   const stmt = db.prepare(`
@@ -2478,6 +3440,18 @@ function seedLogs() {
       "直播导播脚本终审",
       { status: "待处理" },
       "2026-04-24T10:05:00+08:00"
+    ],
+    [
+      "log-seed-5",
+      "user-director",
+      "周聿",
+      "director",
+      "赛事完赛",
+      "tournament",
+      "tournament-badminton-knockout",
+      "滨江羽毛球冠军杯",
+      { champion: "浦江双星" },
+      "2026-03-14T21:10:00+08:00"
     ]
   ];
 
@@ -2508,8 +3482,10 @@ function seedAll() {
   seedVenues();
   seedOfficials();
   seedTournaments();
+  seedTournamentSeriesLinks();
   seedStages();
   seedEntries();
+  syncLegacyTeamsFromEntries();
   seedMatches();
   seedRegistrations();
   seedTasks();
@@ -2534,22 +3510,46 @@ function ensureDirectory(dir) {
   }
 }
 
-function clearDirectory(dir) {
-  ensureDirectory(dir);
-
-  for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
-    const target = path.join(dir, entry.name);
-    if (entry.isDirectory()) {
-      fs.rmSync(target, { recursive: true, force: true });
-    } else {
-      fs.unlinkSync(target);
-    }
-  }
+function isRetryableFileError(error) {
+  return ["EBUSY", "EPERM", "ENOENT"].includes(error?.code);
 }
 
 function writeJsonFile(filePath, payload) {
   ensureDirectory(path.dirname(filePath));
-  fs.writeFileSync(filePath, JSON.stringify(payload, null, 2));
+  try {
+    fs.writeFileSync(filePath, JSON.stringify(payload, null, 2));
+    return true;
+  } catch (error) {
+    if (isRetryableFileError(error)) {
+      console.warn(`[homepage-sync] skipped writing locked file: ${filePath}`);
+      return false;
+    }
+    throw error;
+  }
+}
+
+function pruneDirectory(dir, keepNames = new Set()) {
+  ensureDirectory(dir);
+
+  for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
+    if (keepNames.has(entry.name)) continue;
+
+    const target = path.join(dir, entry.name);
+
+    try {
+      if (entry.isDirectory()) {
+        fs.rmSync(target, { recursive: true, force: true });
+      } else {
+        fs.unlinkSync(target);
+      }
+    } catch (error) {
+      if (isRetryableFileError(error)) {
+        console.warn(`[homepage-sync] skipped removing locked path: ${target}`);
+        continue;
+      }
+      throw error;
+    }
+  }
 }
 
 function buildHomepageSnapshots() {
@@ -2654,6 +3654,7 @@ function buildHomepageSnapshots() {
       tags: Array.isArray(tournament.tags_json) ? tournament.tags_json : [],
       highlights: Array.isArray(tournament.highlights_json) ? tournament.highlights_json : [],
       entryPresentation: tournament.entryPresentation,
+      series: tournament.series || { self: null, parent: null, children: [] },
       liveMatchCount,
       upcomingMatchCount,
       completedMatchCount,
@@ -2694,6 +3695,7 @@ function buildHomepageSnapshots() {
         participantCount: entries.length,
         stageCount: stages.length
       },
+      series: tournament.series || { self: null, parent: null, children: [] },
       stages,
       entries,
       matches: {
@@ -2711,14 +3713,17 @@ function buildHomepageSnapshots() {
 
 export function syncHomepageData() {
   ensureDirectory(homepageTournamentDataDir);
-  clearDirectory(homepageTournamentDataDir);
-
   const { listPayload, detailPayloads } = buildHomepageSnapshots();
+  const expectedTournamentFiles = new Set();
 
   writeJsonFile(path.join(homepageDataDir, "tournaments.json"), listPayload);
   for (const detail of detailPayloads) {
-    writeJsonFile(path.join(homepageTournamentDataDir, `${detail.tournament.id}.json`), detail);
+    const fileName = `${detail.tournament.id}.json`;
+    expectedTournamentFiles.add(fileName);
+    writeJsonFile(path.join(homepageTournamentDataDir, fileName), detail);
   }
+
+  pruneDirectory(homepageTournamentDataDir, expectedTournamentFiles);
 }
 
 export function initializeDatabase() {
@@ -2733,6 +3738,7 @@ export function initializeDatabase() {
       throw error;
     }
   }
+  ensureDemoDataConsistency();
   syncHomepageData();
 }
 
@@ -2745,6 +3751,7 @@ export function resetDemoData() {
       DELETE FROM activity_logs;
       DELETE FROM app_state;
       DELETE FROM matches;
+      DELETE FROM tournament_series_links;
       DELETE FROM entries;
       DELETE FROM teams;
       DELETE FROM registrations;
@@ -2757,6 +3764,7 @@ export function resetDemoData() {
       DELETE FROM sports;
     `);
     seedAll();
+    ensureDemoDataConsistency();
     db.exec("COMMIT");
   } catch (error) {
     db.exec("ROLLBACK");
@@ -2886,6 +3894,7 @@ export function updateUserRole(userId, role, actorId = "user-admin") {
 
 export function getDashboardData(userId) {
   const resolvedCurrentUser = userId ? getCurrentUser(userId) : null;
+  const tournamentSeriesMap = buildTournamentSeriesMap();
 
   const overview = get(`
     SELECT
@@ -2910,6 +3919,40 @@ export function getDashboardData(userId) {
     GROUP BY s.id, s.name, s.icon, s.category, s.participants_type
     ORDER BY s.popularity_rank ASC
   `);
+  const formats = all(`SELECT * FROM competition_formats ORDER BY name ASC`).map((row) =>
+    parseJsonFields(row, ["rules_json"])
+  );
+  const createConstraints = Object.fromEntries(
+    sports.map((sport) => {
+      const creationConfig = getTournamentCreationConfig(sport);
+      return [
+        sport.id,
+        {
+          allowedEntryModes: creationConfig.allowedEntryModes,
+          allowedEntryModeOptions: creationConfig.allowedEntryModes.map((mode) => ({
+            value: mode,
+            label: ENTRY_MODE_LABELS[mode],
+            meta: getEntryConfig(mode).pageDescription
+          })),
+          allowedFormatsByEntryMode: Object.fromEntries(
+            creationConfig.allowedEntryModes.map((mode) => [
+              mode,
+              (creationConfig.allowedFormatsByEntryMode?.[mode] || []).map((formatId) => {
+                const format = formats.find((item) => item.id === formatId);
+                return format
+                  ? {
+                      id: format.id,
+                      name: format.name,
+                      category: format.category
+                    }
+                  : null;
+              }).filter(Boolean)
+            ])
+          )
+        }
+      ];
+    })
+  );
 
   const tournaments = all(`
     SELECT
@@ -2931,9 +3974,11 @@ export function getDashboardData(userId) {
       t.start_date ASC
   `).map((row) => {
     const parsed = parseJsonFields(row, ["tags_json", "highlights_json"]);
+    const series = tournamentSeriesMap.get(parsed.id) || { self: null, parent: null, children: [] };
     return {
       ...parsed,
-      entryPresentation: getEntryConfig(parsed.entry_mode || parsed.participants_type)
+      entryPresentation: getEntryConfig(parsed.entry_mode || parsed.participants_type),
+      series
     };
   });
 
@@ -3043,10 +4088,6 @@ export function getDashboardData(userId) {
     };
   });
 
-  const formats = all(`SELECT * FROM competition_formats ORDER BY name ASC`).map((row) =>
-    parseJsonFields(row, ["rules_json"])
-  );
-
   const users = all(`SELECT * FROM users ORDER BY rowid ASC`).map(serializeUser);
 
   const activityLogs = all(`
@@ -3143,7 +4184,17 @@ export function getDashboardData(userId) {
         "场馆与裁判资源",
         "直播与运营任务",
         "阶段管理与风险预警"
-      ]
+      ],
+      createConstraints,
+      seriesLevels: TOURNAMENT_SERIES_LEVELS,
+      seriesCandidates: tournaments.map((tournament) => ({
+        value: tournament.id,
+        label: `${tournament.name} · ${tournament.series?.self?.seriesLevelLabel || tournament.level}`,
+        meta: tournament.series?.self?.seriesName || `${tournament.sport_name} · ${tournament.season_label}`,
+        sportId: tournament.sport_id,
+        seriesName: tournament.series?.self?.seriesName || "",
+        seriesLevel: tournament.series?.self?.seriesLevel || ""
+      }))
     }
   };
 }
@@ -3156,12 +4207,12 @@ export function createTournament(payload) {
   const prizePool = Number(payload.prizePool) || 0;
   const formatId = payload.formatId;
   const sportId = payload.sportId;
-  const defaultEntryMode = getEntryMode(get("SELECT participants_type FROM sports WHERE id = ?", [sportId])?.participants_type);
-  const entryMode = ENTRY_MODE_CONFIG[payload.entryMode] ? payload.entryMode : defaultEntryMode;
+  const { entryMode } = resolveTournamentCreationRules(sportId, formatId, payload.entryMode);
   const tags = Array.isArray(payload.tags) ? payload.tags : [];
   const startDate = payload.startDate;
   const endDate = payload.endDate;
   const registrationDeadline = payload.registrationDeadline || startDate;
+  const seriesPayload = normalizeTournamentSeriesPayload(payload);
   const status = sanitizeStatus(payload.status || "筹备中", [
     "筹备中",
     "报名中",
@@ -3210,6 +4261,7 @@ export function createTournament(payload) {
   createStageBlueprints(formatId, tournamentId, startDate, endDate, teamCount).forEach((stage) =>
     insertStage(stage)
   );
+  upsertTournamentSeriesLink(tournamentId, seriesPayload);
 
   insertTask({
     id: createId("task"),
@@ -3242,7 +4294,9 @@ export function createTournament(payload) {
     detail: {
       sportId,
       formatId,
-      seasonLabel: payload.seasonLabel?.trim() || "未命名赛季"
+      seasonLabel: payload.seasonLabel?.trim() || "未命名赛季",
+      seriesName: seriesPayload.seriesName || "",
+      seriesLevel: seriesPayload.seriesLevel || ""
     }
   });
 
@@ -3286,6 +4340,7 @@ export function deleteTournament(id, actorId = "user-director") {
     deleteTournamentStages(id);
     deleteTournamentEntries(id);
     deleteTournamentLegacyTeams(id);
+    deleteTournamentSeriesLinks(id);
     deleteTournamentRegistrations(id);
     deleteTournamentTasks(id);
     run("DELETE FROM tournaments WHERE id = ?", [id]);
@@ -3545,6 +4600,7 @@ export function addEntriesToTournament(tournamentId, entries, actorId = "user-sc
       seed += 1;
     }
 
+    syncLegacyTeamsFromEntries(tournamentId);
     run(
       "UPDATE tournaments SET team_count = (SELECT COUNT(*) FROM entries WHERE tournament_id = ?) WHERE id = ?",
       [tournamentId, tournamentId]
@@ -3595,6 +4651,7 @@ export function generateSchedule(tournamentId, actorId = "user-scheduler") {
     } else {
       syncPlaceholderEntries(tournamentId, 0);
     }
+    syncLegacyTeamsFromEntries(tournamentId, { removeMissing: true });
 
     const stageBlueprints = resetTournamentStages(
       tournamentId,

@@ -1,0 +1,336 @@
+{
+  "generatedAt": "2026-04-25T20:54:31.082Z",
+  "tournament": {
+    "id": "tournament-national-basketball-finals",
+    "name": "全国篮球冠军总决赛",
+    "shortName": "全国总决赛",
+    "sportName": "篮球",
+    "sportIcon": "sports_basketball",
+    "formatName": "小组赛 + 淘汰赛",
+    "seasonLabel": "2026 全国赛",
+    "organizer": "中国城市篮球联赛委员会",
+    "location": "北京",
+    "level": "全国总决赛",
+    "status": "筹备中",
+    "startDate": "2026-09-18",
+    "endDate": "2026-09-28",
+    "registrationDeadline": "2026-09-02",
+    "teamCount": 8,
+    "matchCount": 16,
+    "venueCount": 2,
+    "prizePool": 1200000,
+    "broadcastChannels": "央视体育 / 咪咕体育 / 新媒体矩阵",
+    "notes": "汇总各省级赛冠军，形成全国总决赛。",
+    "tags": [
+      "全国",
+      "篮球",
+      "总决赛"
+    ],
+    "highlights": [
+      "八城冠军会师",
+      "小组赛后交叉淘汰",
+      "全国冠军争夺"
+    ],
+    "entryPresentation": {
+      "mode": "team",
+      "singular": "队伍",
+      "plural": "队伍",
+      "pageLabel": "参赛单位",
+      "pageTitle": "队伍与报名",
+      "pageDescription": "当前页面只处理队伍与报名。新增和批量导入使用抽屉，不再把表单摊在正文。",
+      "createLabel": "新增队伍",
+      "createTitle": "新增队伍",
+      "createDescription": "队伍录入使用抽屉，页面主体只保留参赛信息与报名审核。",
+      "bulkTitle": "批量导入队伍",
+      "bulkDescription": "批量导入保留在抽屉里，正文只做结果查看与审核。",
+      "bulkHint": "每行一支队伍，格式：名称, 地区, 教练",
+      "nameLabel": "队伍名称",
+      "shortNameLabel": "简称",
+      "organizationLabel": "俱乐部",
+      "regionLabel": "地区",
+      "coachLabel": "教练",
+      "contactLabel": "队长",
+      "metaLabel": "地区 / 负责人",
+      "coachContactLabel": "教练 / 队长",
+      "memberCountLabel": "参赛人数",
+      "detailTitle": "队伍详情",
+      "countSummaryLabel": "正式队伍",
+      "unit": "支",
+      "defaultParticipantCount": 12
+    },
+    "series": {
+      "self": {
+        "seriesName": "东部城市冠军体系",
+        "seriesLevel": "national",
+        "seriesLevelLabel": "全国",
+        "stageLabel": "全国总决赛",
+        "qualifiesToCount": 0,
+        "qualifyRule": ""
+      },
+      "parent": null,
+      "children": [
+        {
+          "id": "tournament-hoops-league",
+          "name": "东岸篮球冠军联赛",
+          "shortName": "东岸联赛",
+          "status": "报名中",
+          "startDate": "2026-06-10",
+          "endDate": "2026-08-28",
+          "location": "上海",
+          "level": "省级总决赛",
+          "sportId": "basketball",
+          "stageLabel": "华东省级总决赛",
+          "qualifiesToCount": 1,
+          "qualifyRule": "省级冠军晋级全国总决赛"
+        }
+      ]
+    },
+    "liveMatchCount": 0,
+    "upcomingMatchCount": 1,
+    "completedMatchCount": 0,
+    "detailUrl": "./tournament.html?id=tournament-national-basketball-finals",
+    "jsonPath": "./data/tournaments/tournament-national-basketball-finals.json"
+  },
+  "metrics": {
+    "liveMatchCount": 0,
+    "upcomingMatchCount": 1,
+    "completedMatchCount": 0,
+    "participantCount": 2,
+    "stageCount": 2
+  },
+  "series": {
+    "self": {
+      "seriesName": "东部城市冠军体系",
+      "seriesLevel": "national",
+      "seriesLevelLabel": "全国",
+      "stageLabel": "全国总决赛",
+      "qualifiesToCount": 0,
+      "qualifyRule": ""
+    },
+    "parent": null,
+    "children": [
+      {
+        "id": "tournament-hoops-league",
+        "name": "东岸篮球冠军联赛",
+        "shortName": "东岸联赛",
+        "status": "报名中",
+        "startDate": "2026-06-10",
+        "endDate": "2026-08-28",
+        "location": "上海",
+        "level": "省级总决赛",
+        "sportId": "basketball",
+        "stageLabel": "华东省级总决赛",
+        "qualifiesToCount": 1,
+        "qualifyRule": "省级冠军晋级全国总决赛"
+      }
+    ]
+  },
+  "stages": [
+    {
+      "id": "stage-bb-national-groups",
+      "name": "全国小组赛",
+      "stageType": "group",
+      "status": "筹备中",
+      "participantScope": "8 队分 2 组",
+      "rulesSummary": "双组单循环，每组前二晋级淘汰赛",
+      "matchesPlanned": 12,
+      "startDate": "2026-09-18",
+      "endDate": "2026-09-23"
+    },
+    {
+      "id": "stage-bb-national-knockout",
+      "name": "全国淘汰赛",
+      "stageType": "knockout",
+      "status": "筹备中",
+      "participantScope": "4 队",
+      "rulesSummary": "半决赛到决赛，单败淘汰",
+      "matchesPlanned": 3,
+      "startDate": "2026-09-25",
+      "endDate": "2026-09-28"
+    }
+  ],
+  "entries": [
+    {
+      "id": "entry-bb-national-1",
+      "name": "东岸骑士",
+      "shortName": "DAQ",
+      "organization": "东岸俱乐部",
+      "region": "上海",
+      "coach": "林策",
+      "contactName": "郑野",
+      "participantCount": 18,
+      "status": "待确认",
+      "seedNo": 1,
+      "memberNames": [],
+      "computed": {
+        "matchesPlayed": 0,
+        "wins": 0,
+        "losses": 0,
+        "upcoming": [
+          {
+            "id": "match-bbn-1",
+            "roundLabel": "A 组第 1 轮",
+            "scheduledAt": "2026-09-18T19:30:00+08:00",
+            "opponentName": "南岭火种"
+          }
+        ],
+        "totalMatches": 1
+      }
+    },
+    {
+      "id": "entry-bb-national-2",
+      "name": "南岭火种",
+      "shortName": "NLH",
+      "organization": "南岭体育",
+      "region": "广州",
+      "coach": "贺舶",
+      "contactName": "丁策",
+      "participantCount": 18,
+      "status": "待确认",
+      "seedNo": 2,
+      "memberNames": [],
+      "computed": {
+        "matchesPlayed": 0,
+        "wins": 0,
+        "losses": 0,
+        "upcoming": [
+          {
+            "id": "match-bbn-1",
+            "roundLabel": "A 组第 1 轮",
+            "scheduledAt": "2026-09-18T19:30:00+08:00",
+            "opponentName": "东岸骑士"
+          }
+        ],
+        "totalMatches": 1
+      }
+    }
+  ],
+  "matches": {
+    "live": [],
+    "upcoming": [
+      {
+        "id": "match-bbn-1",
+        "roundLabel": "A 组第 1 轮",
+        "bracketSlot": "NA1",
+        "stageName": "全国小组赛",
+        "scheduledAt": "2026-09-18T19:30:00+08:00",
+        "venueName": "浦东城市馆",
+        "homeTeamName": "东岸骑士",
+        "awayTeamName": "南岭火种",
+        "homeScore": 0,
+        "awayScore": 0,
+        "status": "待进行",
+        "streamStatus": "待排期",
+        "officialName": "陈澈",
+        "importanceLevel": "极高",
+        "notes": "全国总决赛揭幕战",
+        "phaseType": "group"
+      }
+    ],
+    "recent": [],
+    "all": [
+      {
+        "id": "match-bbn-1",
+        "roundLabel": "A 组第 1 轮",
+        "bracketSlot": "NA1",
+        "stageName": "全国小组赛",
+        "scheduledAt": "2026-09-18T19:30:00+08:00",
+        "venueName": "浦东城市馆",
+        "homeTeamName": "东岸骑士",
+        "awayTeamName": "南岭火种",
+        "homeScore": 0,
+        "awayScore": 0,
+        "status": "待进行",
+        "streamStatus": "待排期",
+        "officialName": "陈澈",
+        "importanceLevel": "极高",
+        "notes": "全国总决赛揭幕战",
+        "phaseType": "group"
+      }
+    ]
+  },
+  "insights": {
+    "tournamentId": "tournament-national-basketball-finals",
+    "standings": [
+      {
+        "teamId": "entry-bb-national-1",
+        "teamName": "东岸骑士",
+        "seedNo": 1,
+        "played": 0,
+        "wins": 0,
+        "draws": 0,
+        "losses": 0,
+        "scoreFor": 0,
+        "scoreAgainst": 0,
+        "scoreDiff": 0,
+        "points": 0,
+        "rank": 1
+      },
+      {
+        "teamId": "entry-bb-national-2",
+        "teamName": "南岭火种",
+        "seedNo": 2,
+        "played": 0,
+        "wins": 0,
+        "draws": 0,
+        "losses": 0,
+        "scoreFor": 0,
+        "scoreAgainst": 0,
+        "scoreDiff": 0,
+        "points": 0,
+        "rank": 2
+      }
+    ],
+    "groups": [
+      {
+        "groupName": "A",
+        "rows": [
+          {
+            "teamId": "entry-bb-national-1",
+            "teamName": "东岸骑士",
+            "seedNo": 1,
+            "played": 0,
+            "wins": 0,
+            "draws": 0,
+            "losses": 0,
+            "scoreFor": 0,
+            "scoreAgainst": 0,
+            "scoreDiff": 0,
+            "points": 0,
+            "rank": 1,
+            "qualified": true
+          },
+          {
+            "teamId": "entry-bb-national-2",
+            "teamName": "南岭火种",
+            "seedNo": 2,
+            "played": 0,
+            "wins": 0,
+            "draws": 0,
+            "losses": 0,
+            "scoreFor": 0,
+            "scoreAgainst": 0,
+            "scoreDiff": 0,
+            "points": 0,
+            "rank": 2,
+            "qualified": true
+          }
+        ]
+      }
+    ],
+    "advancement": [
+      {
+        "source": "A 组",
+        "teamId": "entry-bb-national-1",
+        "teamName": "东岸骑士",
+        "rank": 1
+      },
+      {
+        "source": "A 组",
+        "teamId": "entry-bb-national-2",
+        "teamName": "南岭火种",
+        "rank": 2
+      }
+    ]
+  }
+}

@@ -39,6 +39,11 @@ function getNormalizedCurrentPath() {
   return pathname;
 }
 
+const DIRECTORY_QR_TARGET = "https://match.bobojin.com/";
+const DIRECTORY_QR_IMAGE = `https://api.qrserver.com/v1/create-qr-code/?size=320x320&data=${encodeURIComponent(
+  DIRECTORY_QR_TARGET
+)}`;
+
 export default function App() {
   const { route, navigate, replace } = useHistoryRouter();
   useFormFieldGuards();
@@ -61,6 +66,7 @@ export default function App() {
     password: "pass123"
   });
   const [scoreDrafts, setScoreDrafts] = useState({});
+  const [qrImageStatus, setQrImageStatus] = useState("idle");
   const [overlay, setOverlay] = useState(null);
 
   const deferredSearchTerm = useDeferredValue(searchTerm);
@@ -141,34 +147,41 @@ export default function App() {
   const capabilities = {
     sportsCoverage: data?.capabilities?.sportsCoverage || [],
     formatCoverage: data?.capabilities?.formatCoverage || [],
-    modules: data?.capabilities?.modules || []
+    modules: data?.capabilities?.modules || [],
+    createConstraints: data?.capabilities?.createConstraints || {},
+    seriesLevels: data?.capabilities?.seriesLevels || [],
+    seriesCandidates: data?.capabilities?.seriesCandidates || []
   };
   const sportLookup = useMemo(() => Object.fromEntries(sports.map((sport) => [sport.id, sport])), [sports]);
-  const createEntryModeOptions = useMemo(() => ENTRY_MODE_OPTIONS, []);
+  const createConstraintLookup = capabilities.createConstraints;
 
   useEffect(() => {
     if (!data) return;
 
     const fallbackSportId = data.sports?.[0]?.id || "";
     const resolvedSportId = createForm.sportId || fallbackSportId;
-    const fallbackEntryMode =
-      sportLookup[resolvedSportId]?.participants_type === "individual"
-        ? "participant"
-        : sportLookup[resolvedSportId]?.participants_type === "single_double"
-          ? "entry"
-          : "team";
+    const resolvedConstraint = createConstraintLookup[resolvedSportId];
+    const fallbackEntryMode = resolvedConstraint?.allowedEntryModes?.[0] || "";
+    const resolvedEntryMode =
+      resolvedConstraint?.allowedEntryModes?.includes(createForm.entryMode) ? createForm.entryMode : fallbackEntryMode;
+    const fallbackFormatId =
+      resolvedConstraint?.allowedFormatsByEntryMode?.[resolvedEntryMode]?.[0]?.id || data.formats?.[0]?.id || "";
 
     setCreateForm((current) => ({
       ...current,
       sportId: current.sportId || fallbackSportId,
-      formatId: current.formatId || data.formats?.[0]?.id || "",
-      entryMode: current.entryMode || fallbackEntryMode
+      entryMode: resolvedEntryMode,
+      formatId: resolvedConstraint?.allowedFormatsByEntryMode?.[resolvedEntryMode]?.some(
+        (item) => item.id === current.formatId
+      )
+        ? current.formatId
+        : fallbackFormatId
     }));
     setLoginDraft((current) => ({
       ...current,
       identifier: current.identifier || data.loginOptions?.[0]?.email || ""
     }));
-  }, [createForm.sportId, data, sportLookup]);
+  }, [createConstraintLookup, createForm.sportId, data, sportLookup]);
 
   useEffect(() => {
     const currentPath = getNormalizedCurrentPath();
@@ -193,11 +206,49 @@ export default function App() {
     () => TOURNAMENT_STATUSES.map((item) => ({ value: item, label: item })),
     []
   );
+  const currentSeriesContextTournamentId = route.type === "detail" ? route.tournamentId : selectedTournamentId;
   const sportCreateOptions = useMemo(() => sports.map((item) => ({ value: item.id, label: item.name })), [sports]);
-  const formatCreateOptions = useMemo(
-    () => formats.map((item) => ({ value: item.id, label: item.name, meta: item.category })),
-    [formats]
+  const createEntryModeOptions = useMemo(() => {
+    const constraint = createConstraintLookup[createForm.sportId];
+    return constraint?.allowedEntryModeOptions || [];
+  }, [createConstraintLookup, createForm.sportId]);
+  const formatCreateOptions = useMemo(() => {
+    const constraint = createConstraintLookup[createForm.sportId];
+    return (constraint?.allowedFormatsByEntryMode?.[createForm.entryMode] || []).map((item) => ({
+      value: item.id,
+      label: item.name,
+      meta: item.category
+    }));
+  }, [createConstraintLookup, createForm.entryMode, createForm.sportId]);
+  const seriesLevelOptions = useMemo(
+    () => capabilities.seriesLevels.map((item) => ({ value: item.value, label: item.label })),
+    [capabilities.seriesLevels]
   );
+  const seriesParentOptions = useMemo(() => {
+    if (!createForm.sportId || !createForm.seriesLevel) return [];
+
+    return [
+      {
+        value: "",
+        label: "当前作为体系起点",
+        meta: "不设置上级赛事"
+      },
+      ...capabilities.seriesCandidates
+      .filter((item) => item.value !== currentSeriesContextTournamentId)
+      .filter((item) => item.sportId === createForm.sportId)
+      .filter((item) => {
+        if (!item.seriesLevel) return false;
+        const rank = { city: 1, province: 2, national: 3 };
+        return (rank[item.seriesLevel] || 0) > (rank[createForm.seriesLevel] || 0);
+      })
+      .map((item) => ({
+        value: item.value,
+        label: item.label,
+        meta: item.meta
+      }))
+    ];
+  }, [capabilities.seriesCandidates, createForm.seriesLevel, createForm.sportId, currentSeriesContextTournamentId]);
+  const selectedSportConstraint = createConstraintLookup[createForm.sportId] || null;
   const userOptions = useMemo(
     () => users.map((user) => ({ value: user.id, label: `${user.name} · ${user.roleLabel}` })),
     [users]
@@ -424,6 +475,26 @@ export default function App() {
       return;
     }
 
+    if (!createForm.sportId || !createForm.formatId) {
+      setBanner("请先选择运动项目和赛制。");
+      return;
+    }
+
+    if (!createForm.entryMode) {
+      setBanner("请先选择参赛模式。");
+      return;
+    }
+
+    if (
+      selectedSportConstraint &&
+      !selectedSportConstraint.allowedFormatsByEntryMode?.[createForm.entryMode]?.some(
+        (item) => item.id === createForm.formatId
+      )
+    ) {
+      setBanner("当前运动项目不支持所选赛制，请重新选择。");
+      return;
+    }
+
     const payload = await runMutation(
       "create-tournament",
       () =>
@@ -433,6 +504,7 @@ export default function App() {
             ...createForm,
             teamCount: Number(createForm.teamCount),
             prizePool: Number(createForm.prizePool),
+            qualifiesToCount: Number(createForm.qualifiesToCount) || 0,
             tags: createForm.tags
               .split(/[，,]/)
               .map((item) => item.trim())
@@ -775,6 +847,10 @@ export default function App() {
           onOpenTournament={openTournament}
           permissionSet={permissionSet}
           onOpenCreateTournament={() => setOverlay({ type: "create-tournament" })}
+          onOpenQrModal={() => {
+            setQrImageStatus("loading");
+            setOverlay({ type: "directory-qr" });
+          }}
           onOpenDeleteTournament={(tournament) => {
             if (!permissionSet.has("tournament:delete")) {
               setBanner(`当前为 ${currentUser?.roleLabel || "当前角色"} 视角，只有系统管理员或赛事总监可以删除赛事。`);
@@ -805,6 +881,7 @@ export default function App() {
             <>
               {activePageId === "overview" ? (
                 <OverviewPage
+                  selectedTournament={selectedTournament}
                   stageRows={stageRows}
                   selectedInsightStandings={selectedInsightStandings}
                   selectedInsightGroups={selectedInsightGroups}
@@ -890,7 +967,7 @@ export default function App() {
       )}
 
       {overlay?.type === "create-tournament" ? (
-        <OverlayFrame mode="drawer" title="新建赛事" description="建赛使用抽屉，目录页保持专注于选择。" onClose={() => setOverlay(null)}>
+        <OverlayFrame mode="drawer" title="新建赛事" onClose={() => setOverlay(null)}>
           <form className="studio-panel studio-panel--overlay" onSubmit={handleCreateTournament}>
             <div className="field-grid">
               <label className="field">
@@ -909,20 +986,69 @@ export default function App() {
                   onChange={(event) => setCreateForm((current) => ({ ...current, seasonLabel: event.target.value }))}
                 />
               </label>
+              <label className="field">
+                <span>赛事体系名称</span>
+                <input
+                  className="text-input"
+                  value={createForm.seriesName}
+                  onChange={(event) =>
+                    setCreateForm((current) => ({
+                      ...current,
+                      seriesName: event.target.value
+                    }))
+                  }
+                  placeholder="如：东部城市冠军体系"
+                />
+              </label>
               <div className="field">
                 <span>运动项目</span>
                 <SelectMenu
                   value={createForm.sportId}
                   options={sportCreateOptions}
                   onChange={(value) => {
-                    const nextSport = sportLookup[value];
-                    const nextEntryMode =
-                      nextSport?.participants_type === "individual"
-                        ? "participant"
-                        : nextSport?.participants_type === "single_double"
-                          ? "entry"
-                          : "team";
-                    setCreateForm((current) => ({ ...current, sportId: value, entryMode: nextEntryMode }));
+                    const nextConstraint = createConstraintLookup[value];
+                    const nextEntryMode = nextConstraint?.allowedEntryModes?.includes(createForm.entryMode)
+                      ? createForm.entryMode
+                      : nextConstraint?.allowedEntryModes?.[0] || "";
+                    const rank = { city: 1, province: 2, national: 3 };
+                    const nextSeriesParents = capabilities.seriesCandidates.filter((item) => {
+                      if (item.value === selectedTournament?.id) return false;
+                      if (item.sportId !== value) return false;
+                      if (!item.seriesLevel) return false;
+                      return (rank[item.seriesLevel] || 0) > (rank[createForm.seriesLevel] || 0);
+                    });
+                    setCreateForm((current) => ({
+                      ...current,
+                      sportId: value,
+                      entryMode: nextEntryMode,
+                      parentTournamentId:
+                        nextSeriesParents.some((item) => item.value === current.parentTournamentId)
+                          ? current.parentTournamentId
+                          : "",
+                      formatId:
+                        nextConstraint?.allowedFormatsByEntryMode?.[nextEntryMode]?.some(
+                          (item) => item.id === current.formatId
+                        )
+                          ? current.formatId
+                          : nextConstraint?.allowedFormatsByEntryMode?.[nextEntryMode]?.[0]?.id || ""
+                    }));
+                  }}
+                />
+              </div>
+              <div className="field">
+                <span>参赛模式</span>
+                <SelectMenu
+                  value={createForm.entryMode}
+                  options={createEntryModeOptions}
+                  onChange={(value) => {
+                    const nextFormats = selectedSportConstraint?.allowedFormatsByEntryMode?.[value] || [];
+                    setCreateForm((current) => ({
+                      ...current,
+                      entryMode: value,
+                      formatId: nextFormats.some((item) => item.id === current.formatId)
+                        ? current.formatId
+                        : nextFormats[0]?.id || ""
+                    }));
                   }}
                 />
               </div>
@@ -935,13 +1061,65 @@ export default function App() {
                 />
               </div>
               <div className="field">
-                <span>参赛模式</span>
+                <span>体系级别</span>
                 <SelectMenu
-                  value={createForm.entryMode}
-                  options={createEntryModeOptions}
-                  onChange={(value) => setCreateForm((current) => ({ ...current, entryMode: value }))}
+                  value={createForm.seriesLevel}
+                  options={seriesLevelOptions}
+                  placeholder="不加入体系可留空"
+                  onChange={(value) =>
+                    setCreateForm((current) => ({
+                      ...current,
+                      seriesLevel: value,
+                      parentTournamentId: ""
+                    }))
+                  }
                 />
               </div>
+              <div className="field">
+                <span>上级赛事</span>
+                <SelectMenu
+                  value={createForm.parentTournamentId}
+                  options={seriesParentOptions}
+                  placeholder={createForm.seriesLevel ? "可选上级赛事" : "先选择体系级别"}
+                  disabled={!createForm.seriesLevel || seriesParentOptions.length <= 1}
+                  onChange={(value) => {
+                    const selectedParent = capabilities.seriesCandidates.find((item) => item.value === value);
+                    setCreateForm((current) => ({
+                      ...current,
+                      parentTournamentId: value,
+                      seriesName: selectedParent?.seriesName || current.seriesName
+                    }));
+                  }}
+                />
+              </div>
+              <label className="field">
+                <span>阶段名称</span>
+                <input
+                  className="text-input"
+                  value={createForm.stageLabel}
+                  onChange={(event) => setCreateForm((current) => ({ ...current, stageLabel: event.target.value }))}
+                  placeholder="如：上海市选拔"
+                />
+              </label>
+              <label className="field">
+                <span>晋级名额</span>
+                <input
+                  className="text-input"
+                  value={createForm.qualifiesToCount}
+                  onChange={(event) =>
+                    setCreateForm((current) => ({ ...current, qualifiesToCount: event.target.value }))
+                  }
+                />
+              </label>
+              <label className="field field--full">
+                <span>晋级规则</span>
+                <input
+                  className="text-input"
+                  value={createForm.qualifyRule}
+                  onChange={(event) => setCreateForm((current) => ({ ...current, qualifyRule: event.target.value }))}
+                  placeholder="如：冠军与亚军晋级省级总决赛"
+                />
+              </label>
               <label className="field">
                 <span>主办方</span>
                 <input
@@ -1042,6 +1220,33 @@ export default function App() {
               </button>
             </div>
           </form>
+        </OverlayFrame>
+      ) : null}
+
+      {overlay?.type === "directory-qr" ? (
+        <OverlayFrame mode="modal" title="扫码访问" onClose={() => setOverlay(null)}>
+          <div className="studio-panel studio-panel--overlay qr-modal">
+            <div className="qr-modal__card">
+              {qrImageStatus !== "ready" ? (
+                <div
+                  className={`qr-modal__status ${qrImageStatus === "error" ? "qr-modal__status--error" : ""}`}
+                  role="status"
+                  aria-live="polite"
+                >
+                  {qrImageStatus === "error" ? null : <span className="qr-modal__spinner" aria-hidden="true" />}
+                  <span>{qrImageStatus === "error" ? "二维码加载失败" : "二维码生成中"}</span>
+                </div>
+              ) : null}
+              <img
+                className={`qr-modal__image ${qrImageStatus === "ready" ? "qr-modal__image--ready" : ""}`}
+                src={DIRECTORY_QR_IMAGE}
+                alt="赛事目录访问二维码"
+                onLoad={() => setQrImageStatus("ready")}
+                onError={() => setQrImageStatus("error")}
+              />
+            </div>
+            <p className="qr-modal__url">{DIRECTORY_QR_TARGET}</p>
+          </div>
         </OverlayFrame>
       ) : null}
 

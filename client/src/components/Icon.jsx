@@ -35,6 +35,18 @@ const iconMap = {
       <rect x="4" y="13" width="7" height="7" />
     </>
   ),
+  qr_code_2: (
+    <>
+      <rect x="4.5" y="4.5" width="5.5" height="5.5" />
+      <rect x="14" y="4.5" width="5.5" height="5.5" />
+      <rect x="4.5" y="14" width="5.5" height="5.5" />
+      <path d="M14 14h2.5v2.5H14z" />
+      <path d="M18.5 14v1.7" />
+      <path d="M16.5 18.5H14" />
+      <path d="M18.5 18.5H20" />
+      <path d="M20 16.2v3.8" />
+    </>
+  ),
   close: (
     <>
       <path d="M6 6 18 18" />

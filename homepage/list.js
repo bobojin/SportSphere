@@ -66,6 +66,16 @@ function renderTournamentCard(tournament) {
       </div>
 
       <dl class="tournament-card__meta">
+        ${
+          tournament.series?.self?.seriesName
+            ? `
+              <div class="meta-pair">
+                <dt>赛事体系</dt>
+                <dd>${tournament.series.self.seriesName} · ${tournament.series.self.seriesLevelLabel}</dd>
+              </div>
+            `
+            : ""
+        }
         <div class="meta-pair">
           <dt>赛季</dt>
           <dd>${tournament.seasonLabel || "未命名赛季"}</dd>

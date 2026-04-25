@@ -22,6 +22,7 @@ export function TournamentLayout({
   const activeMeta = NAV_LOOKUP[activePageId] || NAV_ITEMS[0];
   const summaryLabel = entryPresentation?.countSummaryLabel || "参赛单位";
   const tournamentTags = selectedTournament?.highlights_json || [];
+  const tournamentSeries = selectedTournament?.series || { self: null, parent: null, children: [] };
   const focusFacts = selectedTournament
     ? [
         { label: "状态", value: selectedTournament.status, tone: "slate" },
@@ -103,6 +104,12 @@ export function TournamentLayout({
 
             {selectedTournament ? (
               <div className="page-header__facts">
+                {tournamentSeries?.self?.seriesName ? (
+                  <div className="page-fact">
+                    <span>赛事体系</span>
+                    <strong>{`${tournamentSeries.self.seriesName} · ${tournamentSeries.self.seriesLevelLabel}`}</strong>
+                  </div>
+                ) : null}
                 <div className="page-fact">
                   <span>赛季</span>
                   <strong>{selectedTournament.season_label}</strong>
@@ -155,6 +162,23 @@ export function TournamentLayout({
 
             {selectedTournament ? (
               <div className="side-stack">
+                {tournamentSeries?.self?.seriesName ? (
+                  <div className="side-stack__item">
+                    <span>赛事体系</span>
+                    <strong>{tournamentSeries.self.seriesName}</strong>
+                    <p>
+                      {[
+                        tournamentSeries.self.stageLabel,
+                        tournamentSeries.parent ? `上级 ${tournamentSeries.parent.shortName || tournamentSeries.parent.name}` : "",
+                        tournamentSeries.self.qualifiesToCount
+                          ? `${tournamentSeries.self.qualifiesToCount} 个晋级名额`
+                          : ""
+                      ]
+                        .filter(Boolean)
+                        .join(" · ")}
+                    </p>
+                  </div>
+                ) : null}
                 <div className="side-stack__item">
                   <span>当前状态</span>
                   <strong>{selectedTournament.status}</strong>

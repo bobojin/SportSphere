@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-04-25T17:45:04.786Z",
+  "generatedAt": "2026-04-25T20:54:31.082Z",
   "tournament": {
     "id": "tournament-super-cup",
     "name": "城市超级杯足球邀请赛",
@@ -16,7 +16,7 @@
     "endDate": "2026-05-18",
     "registrationDeadline": "2026-04-20",
     "teamCount": 16,
-    "matchCount": 5,
+    "matchCount": 32,
     "venueCount": 3,
     "prizePool": 600000,
     "broadcastChannels": "视频号 / B站 / 地面体育频道",
@@ -58,46 +58,56 @@
       "unit": "支",
       "defaultParticipantCount": 12
     },
+    "series": {
+      "self": null,
+      "parent": null,
+      "children": []
+    },
     "liveMatchCount": 0,
-    "upcomingMatchCount": 4,
-    "completedMatchCount": 1,
+    "upcomingMatchCount": 1,
+    "completedMatchCount": 2,
     "detailUrl": "./tournament.html?id=tournament-super-cup",
     "jsonPath": "./data/tournaments/tournament-super-cup.json"
   },
   "metrics": {
     "liveMatchCount": 0,
-    "upcomingMatchCount": 4,
-    "completedMatchCount": 1,
+    "upcomingMatchCount": 1,
+    "completedMatchCount": 2,
     "participantCount": 4,
     "stageCount": 2
   },
+  "series": {
+    "self": null,
+    "parent": null,
+    "children": []
+  },
   "stages": [
     {
-      "id": "stage-mod1u6dp-zn2su",
+      "id": "stage-fb-groups",
       "name": "小组赛",
       "stageType": "group",
-      "status": "筹备中",
-      "participantScope": "4 队分组",
-      "rulesSummary": "组内单循环，按排名晋级淘汰赛。",
-      "matchesPlanned": 4,
+      "status": "进行中",
+      "participantScope": "16 队分 4 组",
+      "rulesSummary": "组内单循环，前二出线",
+      "matchesPlanned": 24,
       "startDate": "2026-05-02",
-      "endDate": "2026-05-18"
+      "endDate": "2026-05-11"
     },
     {
-      "id": "stage-mod1u6dp-urppo",
+      "id": "stage-fb-knockout",
       "name": "淘汰赛",
       "stageType": "knockout",
-      "status": "筹备中",
-      "participantScope": "4 队晋级",
-      "rulesSummary": "小组晋级队伍交叉淘汰直至决赛。",
-      "matchesPlanned": 3,
-      "startDate": "2026-05-02",
+      "status": "未开始",
+      "participantScope": "8 队",
+      "rulesSummary": "八强至决赛，单败淘汰",
+      "matchesPlanned": 8,
+      "startDate": "2026-05-13",
       "endDate": "2026-05-18"
     }
   ],
   "entries": [
     {
-      "id": "team-fb-1",
+      "id": "entry-fb-1",
       "name": "申城联队",
       "shortName": "SCL",
       "organization": "申城青训",
@@ -109,20 +119,14 @@
       "seedNo": 1,
       "memberNames": [],
       "computed": {
-        "matchesPlayed": 0,
-        "wins": 0,
+        "matchesPlayed": 1,
+        "wins": 1,
         "losses": 0,
         "upcoming": [
           {
-            "id": "match-mod1u6dp-pd3tm",
-            "roundLabel": "A 组第 1 轮",
-            "scheduledAt": "2026-05-02T12:00:00.000Z",
-            "opponentName": "苏城竞技"
-          },
-          {
-            "id": "match-mod1u6dq-8luk0",
-            "roundLabel": "半决赛",
-            "scheduledAt": "2026-05-09T10:00:00.000Z",
+            "id": "match-fb-3",
+            "roundLabel": "A 组第 3 轮",
+            "scheduledAt": "2026-05-08T19:00:00+08:00",
             "opponentName": "海港青年"
           }
         ],
@@ -130,7 +134,7 @@
       }
     },
     {
-      "id": "team-fb-2",
+      "id": "entry-fb-2",
       "name": "海港青年",
       "shortName": "HGQ",
       "organization": "海港学院",
@@ -142,20 +146,14 @@
       "seedNo": 2,
       "memberNames": [],
       "computed": {
-        "matchesPlayed": 0,
+        "matchesPlayed": 1,
         "wins": 0,
         "losses": 0,
         "upcoming": [
           {
-            "id": "match-mod1u6dp-1qpuc",
-            "roundLabel": "B 组第 1 轮",
-            "scheduledAt": "2026-05-03T12:00:00.000Z",
-            "opponentName": "杭城先锋"
-          },
-          {
-            "id": "match-mod1u6dq-8luk0",
-            "roundLabel": "半决赛",
-            "scheduledAt": "2026-05-09T10:00:00.000Z",
+            "id": "match-fb-3",
+            "roundLabel": "A 组第 3 轮",
+            "scheduledAt": "2026-05-08T19:00:00+08:00",
             "opponentName": "申城联队"
           }
         ],
@@ -163,7 +161,7 @@
       }
     },
     {
-      "id": "team-fb-3",
+      "id": "entry-fb-3",
       "name": "苏城竞技",
       "shortName": "SCJ",
       "organization": "苏城体育",
@@ -175,28 +173,15 @@
       "seedNo": 3,
       "memberNames": [],
       "computed": {
-        "matchesPlayed": 0,
+        "matchesPlayed": 1,
         "wins": 0,
         "losses": 0,
-        "upcoming": [
-          {
-            "id": "match-mod1u6dp-pd3tm",
-            "roundLabel": "A 组第 1 轮",
-            "scheduledAt": "2026-05-02T12:00:00.000Z",
-            "opponentName": "申城联队"
-          },
-          {
-            "id": "match-mod1u6dq-ve9rc",
-            "roundLabel": "半决赛",
-            "scheduledAt": "2026-05-09T13:00:00.000Z",
-            "opponentName": "杭城先锋"
-          }
-        ],
-        "totalMatches": 2
+        "upcoming": [],
+        "totalMatches": 1
       }
     },
     {
-      "id": "team-fb-4",
+      "id": "entry-fb-4",
       "name": "杭城先锋",
       "shortName": "HCX",
       "organization": "杭城俱乐部",
@@ -208,24 +193,11 @@
       "seedNo": 4,
       "memberNames": [],
       "computed": {
-        "matchesPlayed": 0,
+        "matchesPlayed": 1,
         "wins": 0,
-        "losses": 0,
-        "upcoming": [
-          {
-            "id": "match-mod1u6dp-1qpuc",
-            "roundLabel": "B 组第 1 轮",
-            "scheduledAt": "2026-05-03T12:00:00.000Z",
-            "opponentName": "海港青年"
-          },
-          {
-            "id": "match-mod1u6dq-ve9rc",
-            "roundLabel": "半决赛",
-            "scheduledAt": "2026-05-09T13:00:00.000Z",
-            "opponentName": "苏城竞技"
-          }
-        ],
-        "totalMatches": 2
+        "losses": 1,
+        "upcoming": [],
+        "totalMatches": 1
       }
     }
   ],
@@ -233,188 +205,116 @@
     "live": [],
     "upcoming": [
       {
-        "id": "match-mod1u6dp-pd3tm",
-        "roundLabel": "A 组第 1 轮",
-        "bracketSlot": "G1",
+        "id": "match-fb-3",
+        "roundLabel": "A 组第 3 轮",
+        "bracketSlot": "A3",
         "stageName": "小组赛",
-        "scheduledAt": "2026-05-02T12:00:00.000Z",
-        "venueName": "浦东城市馆",
-        "homeTeamName": "申城联队",
-        "awayTeamName": "苏城竞技",
-        "homeScore": 0,
-        "awayScore": 0,
-        "status": "待进行",
-        "streamStatus": "待开启",
-        "officialName": "林朔",
-        "importanceLevel": "中",
-        "notes": "小组赛自动编排",
-        "phaseType": "group"
-      },
-      {
-        "id": "match-mod1u6dp-1qpuc",
-        "roundLabel": "B 组第 1 轮",
-        "bracketSlot": "G2",
-        "stageName": "小组赛",
-        "scheduledAt": "2026-05-03T12:00:00.000Z",
-        "venueName": "浦东城市馆",
-        "homeTeamName": "海港青年",
-        "awayTeamName": "杭城先锋",
-        "homeScore": 0,
-        "awayScore": 0,
-        "status": "待进行",
-        "streamStatus": "待开启",
-        "officialName": "林朔",
-        "importanceLevel": "中",
-        "notes": "小组赛自动编排",
-        "phaseType": "group"
-      },
-      {
-        "id": "match-mod1u6dq-8luk0",
-        "roundLabel": "半决赛",
-        "bracketSlot": "K1",
-        "stageName": "淘汰赛",
-        "scheduledAt": "2026-05-09T10:00:00.000Z",
-        "venueName": "浦东城市馆",
+        "scheduledAt": "2026-05-08T19:00:00+08:00",
+        "venueName": "虹口竞技中心",
         "homeTeamName": "申城联队",
         "awayTeamName": "海港青年",
         "homeScore": 0,
         "awayScore": 0,
         "status": "待进行",
         "streamStatus": "待开启",
-        "officialName": "林朔",
-        "importanceLevel": "极高",
-        "notes": "淘汰赛自动编排",
-        "phaseType": "knockout"
-      },
-      {
-        "id": "match-mod1u6dq-ve9rc",
-        "roundLabel": "半决赛",
-        "bracketSlot": "K2",
-        "stageName": "淘汰赛",
-        "scheduledAt": "2026-05-09T13:00:00.000Z",
-        "venueName": "浦东城市馆",
-        "homeTeamName": "苏城竞技",
-        "awayTeamName": "杭城先锋",
-        "homeScore": 0,
-        "awayScore": 0,
-        "status": "待进行",
-        "streamStatus": "待开启",
-        "officialName": "林朔",
-        "importanceLevel": "极高",
-        "notes": "淘汰赛自动编排",
-        "phaseType": "knockout"
+        "officialName": "周楠",
+        "importanceLevel": "高",
+        "notes": "小组头名争夺",
+        "phaseType": "group"
       }
     ],
     "recent": [
       {
-        "id": "match-mod1u6dq-liokv",
-        "roundLabel": "决赛",
-        "bracketSlot": "K3",
-        "stageName": "淘汰赛",
-        "scheduledAt": "2026-05-10T10:00:00.000Z",
-        "venueName": "浦东城市馆",
-        "homeTeamName": "轮空席位",
-        "awayTeamName": "轮空席位",
-        "homeScore": 0,
-        "awayScore": 0,
+        "id": "match-fb-1",
+        "roundLabel": "A 组第 1 轮",
+        "bracketSlot": "A1",
+        "stageName": "小组赛",
+        "scheduledAt": "2026-05-02T18:30:00+08:00",
+        "venueName": "虹口竞技中心",
+        "homeTeamName": "申城联队",
+        "awayTeamName": "杭城先锋",
+        "homeScore": 3,
+        "awayScore": 1,
         "status": "已结束",
         "streamStatus": "已完成",
-        "officialName": "林朔",
-        "importanceLevel": "极高",
-        "notes": "淘汰赛自动编排",
-        "phaseType": "knockout"
+        "officialName": "周楠",
+        "importanceLevel": "高",
+        "notes": "揭幕战",
+        "phaseType": "group"
+      },
+      {
+        "id": "match-fb-2",
+        "roundLabel": "A 组第 2 轮",
+        "bracketSlot": "A2",
+        "stageName": "小组赛",
+        "scheduledAt": "2026-05-05T18:30:00+08:00",
+        "venueName": "虹口竞技中心",
+        "homeTeamName": "海港青年",
+        "awayTeamName": "苏城竞技",
+        "homeScore": 2,
+        "awayScore": 2,
+        "status": "已结束",
+        "streamStatus": "已完成",
+        "officialName": "宋昀",
+        "importanceLevel": "中",
+        "notes": "补时阶段扳平",
+        "phaseType": "group"
       }
     ],
     "all": [
       {
-        "id": "match-mod1u6dp-pd3tm",
+        "id": "match-fb-1",
         "roundLabel": "A 组第 1 轮",
-        "bracketSlot": "G1",
+        "bracketSlot": "A1",
         "stageName": "小组赛",
-        "scheduledAt": "2026-05-02T12:00:00.000Z",
-        "venueName": "浦东城市馆",
+        "scheduledAt": "2026-05-02T18:30:00+08:00",
+        "venueName": "虹口竞技中心",
         "homeTeamName": "申城联队",
-        "awayTeamName": "苏城竞技",
-        "homeScore": 0,
-        "awayScore": 0,
-        "status": "待进行",
-        "streamStatus": "待开启",
-        "officialName": "林朔",
-        "importanceLevel": "中",
-        "notes": "小组赛自动编排",
-        "phaseType": "group"
-      },
-      {
-        "id": "match-mod1u6dp-1qpuc",
-        "roundLabel": "B 组第 1 轮",
-        "bracketSlot": "G2",
-        "stageName": "小组赛",
-        "scheduledAt": "2026-05-03T12:00:00.000Z",
-        "venueName": "浦东城市馆",
-        "homeTeamName": "海港青年",
         "awayTeamName": "杭城先锋",
-        "homeScore": 0,
-        "awayScore": 0,
-        "status": "待进行",
-        "streamStatus": "待开启",
-        "officialName": "林朔",
-        "importanceLevel": "中",
-        "notes": "小组赛自动编排",
+        "homeScore": 3,
+        "awayScore": 1,
+        "status": "已结束",
+        "streamStatus": "已完成",
+        "officialName": "周楠",
+        "importanceLevel": "高",
+        "notes": "揭幕战",
         "phaseType": "group"
       },
       {
-        "id": "match-mod1u6dq-8luk0",
-        "roundLabel": "半决赛",
-        "bracketSlot": "K1",
-        "stageName": "淘汰赛",
-        "scheduledAt": "2026-05-09T10:00:00.000Z",
-        "venueName": "浦东城市馆",
+        "id": "match-fb-2",
+        "roundLabel": "A 组第 2 轮",
+        "bracketSlot": "A2",
+        "stageName": "小组赛",
+        "scheduledAt": "2026-05-05T18:30:00+08:00",
+        "venueName": "虹口竞技中心",
+        "homeTeamName": "海港青年",
+        "awayTeamName": "苏城竞技",
+        "homeScore": 2,
+        "awayScore": 2,
+        "status": "已结束",
+        "streamStatus": "已完成",
+        "officialName": "宋昀",
+        "importanceLevel": "中",
+        "notes": "补时阶段扳平",
+        "phaseType": "group"
+      },
+      {
+        "id": "match-fb-3",
+        "roundLabel": "A 组第 3 轮",
+        "bracketSlot": "A3",
+        "stageName": "小组赛",
+        "scheduledAt": "2026-05-08T19:00:00+08:00",
+        "venueName": "虹口竞技中心",
         "homeTeamName": "申城联队",
         "awayTeamName": "海港青年",
         "homeScore": 0,
         "awayScore": 0,
         "status": "待进行",
         "streamStatus": "待开启",
-        "officialName": "林朔",
-        "importanceLevel": "极高",
-        "notes": "淘汰赛自动编排",
-        "phaseType": "knockout"
-      },
-      {
-        "id": "match-mod1u6dq-ve9rc",
-        "roundLabel": "半决赛",
-        "bracketSlot": "K2",
-        "stageName": "淘汰赛",
-        "scheduledAt": "2026-05-09T13:00:00.000Z",
-        "venueName": "浦东城市馆",
-        "homeTeamName": "苏城竞技",
-        "awayTeamName": "杭城先锋",
-        "homeScore": 0,
-        "awayScore": 0,
-        "status": "待进行",
-        "streamStatus": "待开启",
-        "officialName": "林朔",
-        "importanceLevel": "极高",
-        "notes": "淘汰赛自动编排",
-        "phaseType": "knockout"
-      },
-      {
-        "id": "match-mod1u6dq-liokv",
-        "roundLabel": "决赛",
-        "bracketSlot": "K3",
-        "stageName": "淘汰赛",
-        "scheduledAt": "2026-05-10T10:00:00.000Z",
-        "venueName": "浦东城市馆",
-        "homeTeamName": "轮空席位",
-        "awayTeamName": "轮空席位",
-        "homeScore": 0,
-        "awayScore": 0,
-        "status": "已结束",
-        "streamStatus": "已完成",
-        "officialName": "林朔",
-        "importanceLevel": "极高",
-        "notes": "淘汰赛自动编排",
-        "phaseType": "knockout"
+        "officialName": "周楠",
+        "importanceLevel": "高",
+        "notes": "小组头名争夺",
+        "phaseType": "group"
       }
     ]
   },
@@ -422,58 +322,58 @@
     "tournamentId": "tournament-super-cup",
     "standings": [
       {
-        "teamId": "team-fb-1",
+        "teamId": "entry-fb-1",
         "teamName": "申城联队",
         "seedNo": 1,
-        "played": 0,
-        "wins": 0,
+        "played": 1,
+        "wins": 1,
         "draws": 0,
         "losses": 0,
-        "scoreFor": 0,
-        "scoreAgainst": 0,
-        "scoreDiff": 0,
-        "points": 0,
+        "scoreFor": 3,
+        "scoreAgainst": 1,
+        "scoreDiff": 2,
+        "points": 3,
         "rank": 1
       },
       {
-        "teamId": "team-fb-2",
+        "teamId": "entry-fb-2",
         "teamName": "海港青年",
         "seedNo": 2,
-        "played": 0,
+        "played": 1,
         "wins": 0,
-        "draws": 0,
+        "draws": 1,
         "losses": 0,
-        "scoreFor": 0,
-        "scoreAgainst": 0,
+        "scoreFor": 2,
+        "scoreAgainst": 2,
         "scoreDiff": 0,
-        "points": 0,
+        "points": 1,
         "rank": 2
       },
       {
-        "teamId": "team-fb-3",
+        "teamId": "entry-fb-3",
         "teamName": "苏城竞技",
         "seedNo": 3,
-        "played": 0,
+        "played": 1,
         "wins": 0,
-        "draws": 0,
+        "draws": 1,
         "losses": 0,
-        "scoreFor": 0,
-        "scoreAgainst": 0,
+        "scoreFor": 2,
+        "scoreAgainst": 2,
         "scoreDiff": 0,
-        "points": 0,
+        "points": 1,
         "rank": 3
       },
       {
-        "teamId": "team-fb-4",
+        "teamId": "entry-fb-4",
         "teamName": "杭城先锋",
         "seedNo": 4,
-        "played": 0,
+        "played": 1,
         "wins": 0,
         "draws": 0,
-        "losses": 0,
-        "scoreFor": 0,
-        "scoreAgainst": 0,
-        "scoreDiff": 0,
+        "losses": 1,
+        "scoreFor": 1,
+        "scoreAgainst": 3,
+        "scoreDiff": -2,
         "points": 0,
         "rank": 4
       }
@@ -483,69 +383,64 @@
         "groupName": "A",
         "rows": [
           {
-            "teamId": "team-fb-1",
+            "teamId": "entry-fb-1",
             "teamName": "申城联队",
             "seedNo": 1,
-            "played": 0,
-            "wins": 0,
+            "played": 1,
+            "wins": 1,
             "draws": 0,
             "losses": 0,
-            "scoreFor": 0,
-            "scoreAgainst": 0,
-            "scoreDiff": 0,
-            "points": 0,
+            "scoreFor": 3,
+            "scoreAgainst": 1,
+            "scoreDiff": 2,
+            "points": 3,
             "rank": 1,
             "qualified": true
           },
           {
-            "teamId": "team-fb-3",
-            "teamName": "苏城竞技",
-            "seedNo": 3,
-            "played": 0,
-            "wins": 0,
-            "draws": 0,
-            "losses": 0,
-            "scoreFor": 0,
-            "scoreAgainst": 0,
-            "scoreDiff": 0,
-            "points": 0,
-            "rank": 2,
-            "qualified": true
-          }
-        ]
-      },
-      {
-        "groupName": "B",
-        "rows": [
-          {
-            "teamId": "team-fb-2",
+            "teamId": "entry-fb-2",
             "teamName": "海港青年",
             "seedNo": 2,
-            "played": 0,
+            "played": 1,
             "wins": 0,
-            "draws": 0,
+            "draws": 1,
             "losses": 0,
-            "scoreFor": 0,
-            "scoreAgainst": 0,
+            "scoreFor": 2,
+            "scoreAgainst": 2,
             "scoreDiff": 0,
-            "points": 0,
-            "rank": 1,
+            "points": 1,
+            "rank": 2,
             "qualified": true
           },
           {
-            "teamId": "team-fb-4",
+            "teamId": "entry-fb-3",
+            "teamName": "苏城竞技",
+            "seedNo": 3,
+            "played": 1,
+            "wins": 0,
+            "draws": 1,
+            "losses": 0,
+            "scoreFor": 2,
+            "scoreAgainst": 2,
+            "scoreDiff": 0,
+            "points": 1,
+            "rank": 3,
+            "qualified": false
+          },
+          {
+            "teamId": "entry-fb-4",
             "teamName": "杭城先锋",
             "seedNo": 4,
-            "played": 0,
+            "played": 1,
             "wins": 0,
             "draws": 0,
-            "losses": 0,
-            "scoreFor": 0,
-            "scoreAgainst": 0,
-            "scoreDiff": 0,
+            "losses": 1,
+            "scoreFor": 1,
+            "scoreAgainst": 3,
+            "scoreDiff": -2,
             "points": 0,
-            "rank": 2,
-            "qualified": true
+            "rank": 4,
+            "qualified": false
           }
         ]
       }
@@ -553,26 +448,14 @@
     "advancement": [
       {
         "source": "A 组",
-        "teamId": "team-fb-1",
+        "teamId": "entry-fb-1",
         "teamName": "申城联队",
         "rank": 1
       },
       {
         "source": "A 组",
-        "teamId": "team-fb-3",
-        "teamName": "苏城竞技",
-        "rank": 2
-      },
-      {
-        "source": "B 组",
-        "teamId": "team-fb-2",
+        "teamId": "entry-fb-2",
         "teamName": "海港青年",
-        "rank": 1
-      },
-      {
-        "source": "B 组",
-        "teamId": "team-fb-4",
-        "teamName": "杭城先锋",
         "rank": 2
       }
     ]

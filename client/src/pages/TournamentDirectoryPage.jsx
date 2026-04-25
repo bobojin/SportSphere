@@ -20,6 +20,7 @@ export function TournamentDirectoryPage({
   onOpenTournament,
   permissionSet,
   onOpenCreateTournament,
+  onOpenQrModal,
   onOpenDeleteTournament,
   onLogout,
   busyKey,
@@ -58,6 +59,10 @@ export function TournamentDirectoryPage({
             onClick={onOpenCreateTournament}
           >
             新建赛事
+          </button>
+          <button type="button" className="button button--small" onClick={onOpenQrModal}>
+            <Icon name="qr_code_2" />
+            扫码二维码
           </button>
           <div className="topbar-user">
             <strong>{currentUser?.name || "未登录"}</strong>

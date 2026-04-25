@@ -1,5 +1,10 @@
+import { useLayoutEffect, useMemo, useRef, useState } from "react";
 import { Icon } from "../Icon.jsx";
 import { SelectMenu } from "../SelectMenu.jsx";
+
+const BRACKET_MATCH_HEIGHT = 126;
+const BRACKET_MATCH_GAP = 18;
+const BRACKET_ROW_STEP = BRACKET_MATCH_HEIGHT + BRACKET_MATCH_GAP;
 
 export function StatusBadge({ children, tone }) {
   return <span className={`status-badge status-badge--${tone}`}>{children}</span>;
@@ -19,46 +24,299 @@ export function EmptyState({ title, detail }) {
 
 export function KnockoutBracket({ matches }) {
   const safeMatches = Array.isArray(matches) ? matches : [];
-  const rounds = safeMatches.reduce((map, match) => {
-    const key = match.round_label;
-    if (!map.has(key)) {
-      map.set(key, []);
-    }
-    map.get(key).push(match);
-    return map;
-  }, new Map());
+  const canvasRef = useRef(null);
+  const matchRefs = useRef(new Map());
+  const [lineState, setLineState] = useState({ width: 0, height: 0, connectors: [] });
 
-  const orderedRounds = [...rounds.entries()];
+  const orderedRounds = useMemo(() => {
+    const rounds = safeMatches.reduce((map, match) => {
+      const key = match.round_label || "未命名轮次";
+      if (!map.has(key)) {
+        map.set(key, []);
+      }
+      map.get(key).push(match);
+      return map;
+    }, new Map());
+
+    return [...rounds.entries()];
+  }, [safeMatches]);
+
+  const bracketEdges = useMemo(() => {
+    const byId = new Map(safeMatches.map((match) => [match.id, match]));
+    const seen = new Set();
+    const edges = [];
+
+    orderedRounds.forEach(([, roundMatches], roundIndex) => {
+      const nextRoundMatches = orderedRounds[roundIndex + 1]?.[1] || [];
+      const ratio =
+        nextRoundMatches.length > 0 && roundMatches.length >= nextRoundMatches.length
+          ? roundMatches.length / nextRoundMatches.length
+          : 0;
+
+      roundMatches.forEach((match, matchIndex) => {
+        let target = null;
+
+        if (match.next_winner_match_id && byId.has(match.next_winner_match_id)) {
+          target = byId.get(match.next_winner_match_id);
+        } else if (nextRoundMatches.length && Number.isFinite(ratio) && ratio >= 1) {
+          target = nextRoundMatches[Math.min(nextRoundMatches.length - 1, Math.floor(matchIndex / Math.max(1, ratio)))];
+        }
+
+        if (!target) return;
+
+        const edgeKey = `${match.id}->${target.id}`;
+        if (seen.has(edgeKey)) return;
+        seen.add(edgeKey);
+        edges.push({ fromId: match.id, toId: target.id });
+      });
+    });
+
+    return edges;
+  }, [orderedRounds, safeMatches]);
+
+  const { roundsWithLayout, boardHeight } = useMemo(() => {
+    const sourceIdsByTarget = bracketEdges.reduce((map, edge) => {
+      if (!map.has(edge.toId)) {
+        map.set(edge.toId, []);
+      }
+      map.get(edge.toId).push(edge.fromId);
+      return map;
+    }, new Map());
+
+    const positionById = new Map();
+    const nextRounds = orderedRounds.map(([roundLabel, roundMatches], roundIndex) => {
+      const previousRoundCount = orderedRounds[roundIndex - 1]?.[1]?.length || 0;
+      const currentRoundCount = roundMatches.length || 1;
+      const fallbackStride =
+        roundIndex === 0
+          ? BRACKET_ROW_STEP
+          : Math.max(BRACKET_ROW_STEP, BRACKET_ROW_STEP * Math.max(1, previousRoundCount / currentRoundCount));
+
+      const matchesWithLayout = roundMatches.map((match, matchIndex) => {
+        let top = matchIndex * fallbackStride;
+
+        if (roundIndex > 0) {
+          const sourceIds = sourceIdsByTarget.get(match.id) || [];
+          const sourceCenters = sourceIds
+            .map((sourceId) => positionById.get(sourceId)?.center)
+            .filter((value) => Number.isFinite(value));
+
+          if (sourceCenters.length) {
+            const center = sourceCenters.reduce((sum, value) => sum + value, 0) / sourceCenters.length;
+            top = center - BRACKET_MATCH_HEIGHT / 2;
+          }
+        }
+
+        const roundedTop = Math.max(0, Math.round(top));
+        positionById.set(match.id, {
+          top: roundedTop,
+          center: roundedTop + BRACKET_MATCH_HEIGHT / 2
+        });
+
+        return {
+          ...match,
+          layoutTop: roundedTop
+        };
+      });
+
+      return [roundLabel, matchesWithLayout];
+    });
+
+    const computedHeight = Math.max(
+      BRACKET_MATCH_HEIGHT,
+      ...[...positionById.values()].map((item) => item.top + BRACKET_MATCH_HEIGHT)
+    );
+
+    return {
+      roundsWithLayout: nextRounds,
+      boardHeight: computedHeight
+    };
+  }, [bracketEdges, orderedRounds]);
+
+  useLayoutEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return undefined;
+
+    let frame = 0;
+
+    const updateLines = () => {
+      cancelAnimationFrame(frame);
+      frame = requestAnimationFrame(() => {
+        const canvasRect = canvas.getBoundingClientRect();
+        const groupedEdges = bracketEdges.reduce((map, edge) => {
+          if (!map.has(edge.toId)) {
+            map.set(edge.toId, []);
+          }
+          map.get(edge.toId).push(edge.fromId);
+          return map;
+        }, new Map());
+
+        const nextConnectors = [];
+
+        for (const [targetId, sourceIds] of groupedEdges.entries()) {
+          const target = matchRefs.current.get(targetId);
+          if (!target) continue;
+
+          const targetRect = target.getBoundingClientRect();
+          const targetX = targetRect.left - canvasRect.left;
+          const targetY = targetRect.top - canvasRect.top + targetRect.height / 2;
+
+          const sourcePoints = sourceIds
+            .map((sourceId) => {
+              const source = matchRefs.current.get(sourceId);
+              if (!source) return null;
+              const sourceRect = source.getBoundingClientRect();
+              return {
+                id: sourceId,
+                x: sourceRect.right - canvasRect.left,
+                y: sourceRect.top - canvasRect.top + sourceRect.height / 2
+              };
+            })
+            .filter(Boolean)
+            .sort((a, b) => a.y - b.y);
+
+          if (!sourcePoints.length) continue;
+
+          const sourceMaxX = Math.max(...sourcePoints.map((point) => point.x));
+          const availableWidth = Math.max(targetX - sourceMaxX, 0);
+          const branchX = sourceMaxX + availableWidth / 2;
+
+          nextConnectors.push({
+            key: targetId,
+            branchX,
+            targetX,
+            targetY,
+            sourcePoints
+          });
+        }
+
+        setLineState({
+          width: Math.ceil(canvas.scrollWidth),
+          height: Math.ceil(canvas.scrollHeight),
+          connectors: nextConnectors
+        });
+      });
+    };
+
+    updateLines();
+
+    const observer = new ResizeObserver(() => updateLines());
+    observer.observe(canvas);
+    for (const element of matchRefs.current.values()) {
+      observer.observe(element);
+    }
+
+    window.addEventListener("resize", updateLines);
+
+    return () => {
+      cancelAnimationFrame(frame);
+      window.removeEventListener("resize", updateLines);
+      observer.disconnect();
+    };
+  }, [bracketEdges, orderedRounds]);
 
   if (orderedRounds.length === 0) {
     return <EmptyState title="暂无淘汰树" detail="先完成自动编排后再查看。" />;
   }
 
   return (
-    <div className="bracket-board">
-      {orderedRounds.map(([roundLabel, roundMatches]) => (
-        <div key={roundLabel} className="bracket-round">
-          <div className="bracket-round__title">{roundLabel}</div>
-          <div className="bracket-round__list">
-            {roundMatches.map((match) => (
-              <article key={match.id} className="bracket-match">
-                <div className="bracket-match__row">
-                  <strong>{match.home_team_name}</strong>
-                  <span>{match.home_score}</span>
-                </div>
-                <div className="bracket-match__row">
-                  <strong>{match.away_team_name}</strong>
-                  <span>{match.away_score}</span>
-                </div>
-                <div className="bracket-match__meta">
-                  <span>{match.bracket_slot}</span>
-                  <span>{match.status}</span>
-                </div>
-              </article>
-            ))}
+    <div className="bracket-scroll">
+      <div className="bracket-canvas" ref={canvasRef}>
+        <svg
+          className="bracket-links"
+          aria-hidden="true"
+          viewBox={`0 0 ${Math.max(lineState.width, 1)} ${Math.max(lineState.height, 1)}`}
+          preserveAspectRatio="none"
+        >
+          {lineState.connectors.map((connector) => {
+            const topY = Math.min(...connector.sourcePoints.map((point) => point.y));
+            const bottomY = Math.max(...connector.sourcePoints.map((point) => point.y));
+            const branchStemD =
+              connector.sourcePoints.length > 1 ? `M ${connector.branchX} ${topY} V ${bottomY}` : null;
+            const targetStemD = `M ${connector.branchX} ${connector.targetY} H ${connector.targetX}`;
+
+            return (
+              <g key={connector.key}>
+                {branchStemD ? (
+                  <>
+                    <path className="bracket-links__path bracket-links__path--backdrop" d={branchStemD} />
+                    <path className="bracket-links__path" d={branchStemD} />
+                  </>
+                ) : null}
+
+                {connector.sourcePoints.map((point) => {
+                  const segmentD = `M ${point.x} ${point.y} H ${connector.branchX}`;
+                  return (
+                    <g key={point.id}>
+                      <path className="bracket-links__path bracket-links__path--backdrop" d={segmentD} />
+                      <path className="bracket-links__path" d={segmentD} />
+                    </g>
+                  );
+                })}
+
+                <path className="bracket-links__path bracket-links__path--backdrop" d={targetStemD} />
+                <path className="bracket-links__path" d={targetStemD} />
+              </g>
+            );
+          })}
+        </svg>
+
+        <div className="bracket-board">
+        {roundsWithLayout.map(([roundLabel, roundMatches]) => (
+          <div key={roundLabel} className="bracket-round">
+            <div className="bracket-round__title">{roundLabel}</div>
+            <div className="bracket-round__list" style={{ height: `${boardHeight}px` }}>
+              {roundMatches.map((match) => (
+                (() => {
+                  const winnerSide =
+                    match.status === "已结束"
+                      ? match.home_score > match.away_score
+                        ? "home"
+                        : match.away_score > match.home_score
+                          ? "away"
+                          : ""
+                      : "";
+
+                  return (
+                    <article
+                      key={match.id}
+                      className="bracket-match"
+                      style={{ top: `${match.layoutTop || 0}px` }}
+                      ref={(node) => {
+                        if (node) {
+                          matchRefs.current.set(match.id, node);
+                        } else {
+                          matchRefs.current.delete(match.id);
+                        }
+                      }}
+                    >
+                      <div className="bracket-match__row">
+                        <div className="bracket-match__team">
+                          <strong>{match.home_team_name}</strong>
+                          {winnerSide === "home" ? <span className="bracket-match__winner">胜方</span> : null}
+                        </div>
+                        <span>{match.home_score}</span>
+                      </div>
+                      <div className="bracket-match__row">
+                        <div className="bracket-match__team">
+                          <strong>{match.away_team_name}</strong>
+                          {winnerSide === "away" ? <span className="bracket-match__winner">胜方</span> : null}
+                        </div>
+                        <span>{match.away_score}</span>
+                      </div>
+                      <div className="bracket-match__meta">
+                        <span>{match.bracket_slot}</span>
+                        <span>{match.status}</span>
+                      </div>
+                    </article>
+                  );
+                })()
+              ))}
+            </div>
           </div>
+        ))}
         </div>
-      ))}
+      </div>
     </div>
   );
 }

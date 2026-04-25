@@ -38,6 +38,36 @@ function createMetricCard(label, value) {
   `;
 }
 
+function createSeriesCard(series) {
+  const self = series?.self || null;
+  const parent = series?.parent || null;
+  const children = Array.isArray(series?.children) ? series.children : [];
+
+  if (!self?.seriesName) {
+    return renderEmptyCard("暂无赛事体系", "当前赛事未加入任何赛事体系链路。");
+  }
+
+  return `
+    <article class="stage-card">
+      <h3>${self.seriesName}</h3>
+      <ul class="detail-list">
+        <li><span>当前层级</span><strong>${self.seriesLevelLabel || "未标注"}</strong></li>
+        <li><span>阶段名称</span><strong>${self.stageLabel || "当前赛事节点"}</strong></li>
+        <li><span>${parent?.name ? "上级赛事" : "体系位置"}</span><strong>${parent?.name || "当前作为体系起点"}</strong></li>
+        <li><span>晋级名额</span><strong>${self.qualifiesToCount ? `${formatNumber(self.qualifiesToCount)} 个` : "无"}</strong></li>
+      </ul>
+      <p>${self.qualifyRule || "当前层级未设置额外晋级说明。"}</p>
+      ${
+        children.length
+          ? `<div class="inline-list">${children
+              .map((child) => `<span class="tag-pill">${child.stageLabel || child.level || "下级赛事"} · ${child.name}</span>`)
+              .join("")}</div>`
+          : ""
+      }
+    </article>
+  `;
+}
+
 function createStageCard(stage) {
   return `
     <article class="stage-card">
@@ -166,6 +196,7 @@ function renderDetail(payload) {
   const standings = Array.isArray(insights?.standings) ? insights.standings : [];
   const groups = Array.isArray(insights?.groups) ? insights.groups : [];
   const advancement = Array.isArray(insights?.advancement) ? insights.advancement : [];
+  const series = payload.series || tournament.series || { self: null, parent: null, children: [] };
 
   detailRoot.innerHTML = `
     <div class="detail-layout">
@@ -208,6 +239,12 @@ function renderDetail(payload) {
           ${createMetricCard("已结束比赛", metrics?.completedMatchCount || 0)}
         </div>
       </section>
+
+      ${renderSection(
+        "赛事体系",
+        "联赛链路",
+        createSeriesCard(series)
+      )}
 
       ${renderSection(
         "赛事阶段",

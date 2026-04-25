@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-04-25T17:45:04.786Z",
+  "generatedAt": "2026-04-25T20:54:31.082Z",
   "tournament": {
     "id": "tournament-hoops-league",
     "name": "东岸篮球冠军联赛",
@@ -10,7 +10,7 @@
     "seasonLabel": "2026 赛季",
     "organizer": "东岸体育文化",
     "location": "上海",
-    "level": "商业联赛",
+    "level": "省级总决赛",
     "status": "报名中",
     "startDate": "2026-06-10",
     "endDate": "2026-08-28",
@@ -20,16 +20,16 @@
     "venueCount": 2,
     "prizePool": 450000,
     "broadcastChannels": "咪咕体育 / 公众号图文",
-    "notes": "联赛期长，需要完善赛程重排和主客场冲突处理。",
+    "notes": "作为省级总决赛节点，需要承接各城市选拔晋级队伍。",
     "tags": [
       "赞助招商",
       "票务",
       "球员数据"
     ],
     "highlights": [
-      "主客场双循环",
+      "省级总决赛",
       "技术统计全量采集",
-      "总决赛三场两胜"
+      "冠军晋级全国总决赛"
     ],
     "entryPresentation": {
       "mode": "team",
@@ -58,6 +58,44 @@
       "unit": "支",
       "defaultParticipantCount": 12
     },
+    "series": {
+      "self": {
+        "seriesName": "东部城市冠军体系",
+        "seriesLevel": "province",
+        "seriesLevelLabel": "省级",
+        "stageLabel": "华东省级总决赛",
+        "qualifiesToCount": 1,
+        "qualifyRule": "省级冠军晋级全国总决赛"
+      },
+      "parent": {
+        "id": "tournament-national-basketball-finals",
+        "name": "全国篮球冠军总决赛",
+        "shortName": "全国总决赛",
+        "status": "筹备中",
+        "startDate": "2026-09-18",
+        "endDate": "2026-09-28",
+        "location": "北京",
+        "level": "全国总决赛",
+        "sportId": "basketball",
+        "stageLabel": "全国总决赛"
+      },
+      "children": [
+        {
+          "id": "tournament-city-basketball-qualifier",
+          "name": "上海城市篮球选拔赛",
+          "shortName": "上海选拔赛",
+          "status": "已结束",
+          "startDate": "2026-04-08",
+          "endDate": "2026-04-12",
+          "location": "上海",
+          "level": "市级选拔赛",
+          "sportId": "basketball",
+          "stageLabel": "上海市选拔",
+          "qualifiesToCount": 2,
+          "qualifyRule": "冠军与亚军晋级省级总决赛"
+        }
+      ]
+    },
     "liveMatchCount": 0,
     "upcomingMatchCount": 1,
     "completedMatchCount": 0,
@@ -70,6 +108,44 @@
     "completedMatchCount": 0,
     "participantCount": 2,
     "stageCount": 2
+  },
+  "series": {
+    "self": {
+      "seriesName": "东部城市冠军体系",
+      "seriesLevel": "province",
+      "seriesLevelLabel": "省级",
+      "stageLabel": "华东省级总决赛",
+      "qualifiesToCount": 1,
+      "qualifyRule": "省级冠军晋级全国总决赛"
+    },
+    "parent": {
+      "id": "tournament-national-basketball-finals",
+      "name": "全国篮球冠军总决赛",
+      "shortName": "全国总决赛",
+      "status": "筹备中",
+      "startDate": "2026-09-18",
+      "endDate": "2026-09-28",
+      "location": "北京",
+      "level": "全国总决赛",
+      "sportId": "basketball",
+      "stageLabel": "全国总决赛"
+    },
+    "children": [
+      {
+        "id": "tournament-city-basketball-qualifier",
+        "name": "上海城市篮球选拔赛",
+        "shortName": "上海选拔赛",
+        "status": "已结束",
+        "startDate": "2026-04-08",
+        "endDate": "2026-04-12",
+        "location": "上海",
+        "level": "市级选拔赛",
+        "sportId": "basketball",
+        "stageLabel": "上海市选拔",
+        "qualifiesToCount": 2,
+        "qualifyRule": "冠军与亚军晋级省级总决赛"
+      }
+    ]
   },
   "stages": [
     {
@@ -97,7 +173,7 @@
   ],
   "entries": [
     {
-      "id": "team-bb-1",
+      "id": "entry-bb-1",
       "name": "东岸骑士",
       "shortName": "DAQ",
       "organization": "东岸俱乐部",
@@ -124,7 +200,7 @@
       }
     },
     {
-      "id": "team-bb-2",
+      "id": "entry-bb-2",
       "name": "北湾烈焰",
       "shortName": "BWL",
       "organization": "北湾体育",
@@ -170,7 +246,7 @@
         "officialName": "林朔",
         "importanceLevel": "高",
         "notes": "赛季揭幕战",
-        "phaseType": "standard"
+        "phaseType": "league"
       }
     ],
     "recent": [],
@@ -191,7 +267,7 @@
         "officialName": "林朔",
         "importanceLevel": "高",
         "notes": "赛季揭幕战",
-        "phaseType": "standard"
+        "phaseType": "league"
       }
     ]
   },
@@ -199,7 +275,7 @@
     "tournamentId": "tournament-hoops-league",
     "standings": [
       {
-        "teamId": "team-bb-1",
+        "teamId": "entry-bb-1",
         "teamName": "东岸骑士",
         "seedNo": 1,
         "played": 0,
@@ -213,7 +289,7 @@
         "rank": 1
       },
       {
-        "teamId": "team-bb-2",
+        "teamId": "entry-bb-2",
         "teamName": "北湾烈焰",
         "seedNo": 2,
         "played": 0,
@@ -232,7 +308,7 @@
         "groupName": "A",
         "rows": [
           {
-            "teamId": "team-bb-1",
+            "teamId": "entry-bb-1",
             "teamName": "东岸骑士",
             "seedNo": 1,
             "played": 0,
@@ -247,7 +323,7 @@
             "qualified": true
           },
           {
-            "teamId": "team-bb-2",
+            "teamId": "entry-bb-2",
             "teamName": "北湾烈焰",
             "seedNo": 2,
             "played": 0,
@@ -267,13 +343,13 @@
     "advancement": [
       {
         "source": "积分榜",
-        "teamId": "team-bb-1",
+        "teamId": "entry-bb-1",
         "teamName": "东岸骑士",
         "rank": 1
       },
       {
         "source": "积分榜",
-        "teamId": "team-bb-2",
+        "teamId": "entry-bb-2",
         "teamName": "北湾烈焰",
         "rank": 2
       }

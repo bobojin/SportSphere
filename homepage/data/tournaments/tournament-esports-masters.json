@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-04-25T17:45:04.786Z",
+  "generatedAt": "2026-04-25T20:54:31.082Z",
   "tournament": {
     "id": "tournament-esports-masters",
     "name": "先锋电竞大师赛",
@@ -58,18 +58,28 @@
       "unit": "支",
       "defaultParticipantCount": 12
     },
-    "liveMatchCount": 0,
-    "upcomingMatchCount": 0,
-    "completedMatchCount": 3,
+    "series": {
+      "self": null,
+      "parent": null,
+      "children": []
+    },
+    "liveMatchCount": 1,
+    "upcomingMatchCount": 2,
+    "completedMatchCount": 1,
     "detailUrl": "./tournament.html?id=tournament-esports-masters",
     "jsonPath": "./data/tournaments/tournament-esports-masters.json"
   },
   "metrics": {
-    "liveMatchCount": 0,
-    "upcomingMatchCount": 0,
-    "completedMatchCount": 3,
+    "liveMatchCount": 1,
+    "upcomingMatchCount": 2,
+    "completedMatchCount": 1,
     "participantCount": 4,
     "stageCount": 2
+  },
+  "series": {
+    "self": null,
+    "parent": null,
+    "children": []
   },
   "stages": [
     {
@@ -97,7 +107,7 @@
   ],
   "entries": [
     {
-      "id": "team-es-1",
+      "id": "entry-es-1",
       "name": "Nova Pulse",
       "shortName": "NVP",
       "organization": "Nova Pulse",
@@ -109,15 +119,22 @@
       "seedNo": 1,
       "memberNames": [],
       "computed": {
-        "matchesPlayed": 2,
-        "wins": 2,
+        "matchesPlayed": 1,
+        "wins": 1,
         "losses": 0,
-        "upcoming": [],
+        "upcoming": [
+          {
+            "id": "match-es-2",
+            "roundLabel": "胜者组半决赛",
+            "scheduledAt": "2026-04-26T16:00:00+08:00",
+            "opponentName": "Crimson Unit"
+          }
+        ],
         "totalMatches": 2
       }
     },
     {
-      "id": "team-es-2",
+      "id": "entry-es-2",
       "name": "Crimson Unit",
       "shortName": "CRU",
       "organization": "Crimson Unit",
@@ -129,15 +146,22 @@
       "seedNo": 2,
       "memberNames": [],
       "computed": {
-        "matchesPlayed": 1,
+        "matchesPlayed": 0,
         "wins": 0,
-        "losses": 1,
-        "upcoming": [],
+        "losses": 0,
+        "upcoming": [
+          {
+            "id": "match-es-2",
+            "roundLabel": "胜者组半决赛",
+            "scheduledAt": "2026-04-26T16:00:00+08:00",
+            "opponentName": "Nova Pulse"
+          }
+        ],
         "totalMatches": 1
       }
     },
     {
-      "id": "team-es-3",
+      "id": "entry-es-3",
       "name": "Blue Circuit",
       "shortName": "BLC",
       "organization": "Blue Circuit",
@@ -149,15 +173,22 @@
       "seedNo": 3,
       "memberNames": [],
       "computed": {
-        "matchesPlayed": 1,
+        "matchesPlayed": 0,
         "wins": 0,
         "losses": 0,
-        "upcoming": [],
+        "upcoming": [
+          {
+            "id": "match-es-3",
+            "roundLabel": "败者组首轮",
+            "scheduledAt": "2026-04-26T19:30:00+08:00",
+            "opponentName": "Iron Harbor"
+          }
+        ],
         "totalMatches": 1
       }
     },
     {
-      "id": "team-es-4",
+      "id": "entry-es-4",
       "name": "Iron Harbor",
       "shortName": "IRH",
       "organization": "Iron Harbor",
@@ -169,17 +200,80 @@
       "seedNo": 4,
       "memberNames": [],
       "computed": {
-        "matchesPlayed": 2,
+        "matchesPlayed": 1,
         "wins": 0,
         "losses": 1,
-        "upcoming": [],
+        "upcoming": [
+          {
+            "id": "match-es-3",
+            "roundLabel": "败者组首轮",
+            "scheduledAt": "2026-04-26T19:30:00+08:00",
+            "opponentName": "Blue Circuit"
+          }
+        ],
         "totalMatches": 2
       }
     }
   ],
   "matches": {
-    "live": [],
-    "upcoming": [],
+    "live": [
+      {
+        "id": "match-es-2",
+        "roundLabel": "胜者组半决赛",
+        "bracketSlot": "U2",
+        "stageName": "胜者组",
+        "scheduledAt": "2026-04-26T16:00:00+08:00",
+        "venueName": "静安电竞馆",
+        "homeTeamName": "Nova Pulse",
+        "awayTeamName": "Crimson Unit",
+        "homeScore": 2,
+        "awayScore": 1,
+        "status": "进行中",
+        "streamStatus": "直播中",
+        "officialName": "陈澈",
+        "importanceLevel": "极高",
+        "notes": "峰值在线 12 万",
+        "phaseType": "upper-bracket"
+      }
+    ],
+    "upcoming": [
+      {
+        "id": "match-es-2",
+        "roundLabel": "胜者组半决赛",
+        "bracketSlot": "U2",
+        "stageName": "胜者组",
+        "scheduledAt": "2026-04-26T16:00:00+08:00",
+        "venueName": "静安电竞馆",
+        "homeTeamName": "Nova Pulse",
+        "awayTeamName": "Crimson Unit",
+        "homeScore": 2,
+        "awayScore": 1,
+        "status": "进行中",
+        "streamStatus": "直播中",
+        "officialName": "陈澈",
+        "importanceLevel": "极高",
+        "notes": "峰值在线 12 万",
+        "phaseType": "upper-bracket"
+      },
+      {
+        "id": "match-es-3",
+        "roundLabel": "败者组首轮",
+        "bracketSlot": "L1",
+        "stageName": "败者组",
+        "scheduledAt": "2026-04-26T19:30:00+08:00",
+        "venueName": "静安电竞馆",
+        "homeTeamName": "Blue Circuit",
+        "awayTeamName": "Iron Harbor",
+        "homeScore": 0,
+        "awayScore": 0,
+        "status": "待进行",
+        "streamStatus": "待开启",
+        "officialName": "许铮",
+        "importanceLevel": "中",
+        "notes": "败者生死战",
+        "phaseType": "lower-bracket"
+      }
+    ],
     "recent": [
       {
         "id": "match-es-1",
@@ -197,43 +291,7 @@
         "officialName": "许铮",
         "importanceLevel": "高",
         "notes": "主舞台 BO3",
-        "phaseType": "standard"
-      },
-      {
-        "id": "match-es-2",
-        "roundLabel": "胜者组半决赛",
-        "bracketSlot": "U2",
-        "stageName": "胜者组",
-        "scheduledAt": "2026-04-26T16:00:00+08:00",
-        "venueName": "静安电竞馆",
-        "homeTeamName": "Nova Pulse",
-        "awayTeamName": "Crimson Unit",
-        "homeScore": 2,
-        "awayScore": 1,
-        "status": "已结束",
-        "streamStatus": "已完成",
-        "officialName": "陈澈",
-        "importanceLevel": "极高",
-        "notes": "峰值在线 12 万",
-        "phaseType": "standard"
-      },
-      {
-        "id": "match-es-3",
-        "roundLabel": "败者组首轮",
-        "bracketSlot": "L1",
-        "stageName": "败者组",
-        "scheduledAt": "2026-04-26T19:30:00+08:00",
-        "venueName": "静安电竞馆",
-        "homeTeamName": "Blue Circuit",
-        "awayTeamName": "Iron Harbor",
-        "homeScore": 0,
-        "awayScore": 0,
-        "status": "已结束",
-        "streamStatus": "已完成",
-        "officialName": "许铮",
-        "importanceLevel": "中",
-        "notes": "败者生死战",
-        "phaseType": "standard"
+        "phaseType": "upper-bracket"
       }
     ],
     "all": [
@@ -253,7 +311,7 @@
         "officialName": "许铮",
         "importanceLevel": "高",
         "notes": "主舞台 BO3",
-        "phaseType": "standard"
+        "phaseType": "upper-bracket"
       },
       {
         "id": "match-es-2",
@@ -266,12 +324,12 @@
         "awayTeamName": "Crimson Unit",
         "homeScore": 2,
         "awayScore": 1,
-        "status": "已结束",
-        "streamStatus": "已完成",
+        "status": "进行中",
+        "streamStatus": "直播中",
         "officialName": "陈澈",
         "importanceLevel": "极高",
         "notes": "峰值在线 12 万",
-        "phaseType": "standard"
+        "phaseType": "upper-bracket"
       },
       {
         "id": "match-es-3",
@@ -284,12 +342,12 @@
         "awayTeamName": "Iron Harbor",
         "homeScore": 0,
         "awayScore": 0,
-        "status": "已结束",
-        "streamStatus": "已完成",
+        "status": "待进行",
+        "streamStatus": "待开启",
         "officialName": "许铮",
         "importanceLevel": "中",
         "notes": "败者生死战",
-        "phaseType": "standard"
+        "phaseType": "lower-bracket"
       }
     ]
   },
@@ -297,7 +355,7 @@
     "tournamentId": "tournament-esports-masters",
     "standings": [
       {
-        "teamId": "team-es-1",
+        "teamId": "entry-es-1",
         "teamName": "Nova Pulse",
         "seedNo": 1,
         "played": 0,
@@ -311,7 +369,7 @@
         "rank": 1
       },
       {
-        "teamId": "team-es-2",
+        "teamId": "entry-es-2",
         "teamName": "Crimson Unit",
         "seedNo": 2,
         "played": 0,
@@ -325,7 +383,7 @@
         "rank": 2
       },
       {
-        "teamId": "team-es-3",
+        "teamId": "entry-es-3",
         "teamName": "Blue Circuit",
         "seedNo": 3,
         "played": 0,
@@ -339,7 +397,7 @@
         "rank": 3
       },
       {
-        "teamId": "team-es-4",
+        "teamId": "entry-es-4",
         "teamName": "Iron Harbor",
         "seedNo": 4,
         "played": 0,
@@ -358,7 +416,7 @@
         "groupName": "A",
         "rows": [
           {
-            "teamId": "team-es-1",
+            "teamId": "entry-es-1",
             "teamName": "Nova Pulse",
             "seedNo": 1,
             "played": 0,
@@ -373,7 +431,7 @@
             "qualified": true
           },
           {
-            "teamId": "team-es-2",
+            "teamId": "entry-es-2",
             "teamName": "Crimson Unit",
             "seedNo": 2,
             "played": 0,
@@ -388,7 +446,7 @@
             "qualified": true
           },
           {
-            "teamId": "team-es-3",
+            "teamId": "entry-es-3",
             "teamName": "Blue Circuit",
             "seedNo": 3,
             "played": 0,
@@ -403,7 +461,7 @@
             "qualified": false
           },
           {
-            "teamId": "team-es-4",
+            "teamId": "entry-es-4",
             "teamName": "Iron Harbor",
             "seedNo": 4,
             "played": 0,
@@ -423,13 +481,13 @@
     "advancement": [
       {
         "source": "积分榜",
-        "teamId": "team-es-1",
+        "teamId": "entry-es-1",
         "teamName": "Nova Pulse",
         "rank": 1
       },
       {
         "source": "积分榜",
-        "teamId": "team-es-2",
+        "teamId": "entry-es-2",
         "teamName": "Crimson Unit",
         "rank": 2
       }
